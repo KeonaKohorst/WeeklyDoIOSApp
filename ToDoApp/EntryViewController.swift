@@ -12,6 +12,7 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
 //this is where user can enter a task and click done button
     
     @IBOutlet var field: UITextField!
+    @IBOutlet var descField: UITextView!
     var databasePath = String()
     var update: (() -> Void)?
 
@@ -44,10 +45,13 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
         if let task = field.text, !task.isEmpty {
             //tasks.append(task)
             
+            let desc = descField.text ?? ""
+            
+            
             let dailyDoDB = FMDatabase(path: databasePath as String)
             if (dailyDoDB.open()){
                 
-                let insertSQL = "INSERT INTO tasks (taskString) VALUES ('\(task)')"
+                let insertSQL = "INSERT INTO tasks (taskString, description) VALUES ('\(task)', '\(desc)')"
                 
                 let result = dailyDoDB.executeUpdate(insertSQL, withArgumentsIn: [])
                 
@@ -58,13 +62,16 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
                     // Get the last inserted row ID
                     let lastInsertedID = Int(dailyDoDB.lastInsertRowId)
 
-                    print("Task Added: \(task) with ID: \(lastInsertedID)")
+                    print("Task Added: \(task) with ID: \(lastInsertedID) and description \(desc)")
 
              
                     update?()
 
                     field.text = ""
-                    navigationController?.popViewController(animated: true)                }
+                    descField.text = ""
+                    navigationController?.popViewController(animated: true)
+                    
+                }
             } else {
                 print("Error: \(dailyDoDB.lastErrorMessage())")
             }

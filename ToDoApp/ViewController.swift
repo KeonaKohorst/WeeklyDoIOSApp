@@ -27,10 +27,12 @@ import UIKit
 class ViewController: UIViewController {
     //var tasks = [String]()
     var tasks: [String] = []
+    var descriptions: [String] = []
     var ids: [Int] = []
     
     var databasePath = String()
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var noneLabel: UILabel!
     
     @IBAction func didTapAdd(){
         let vc = storyboard?.instantiateViewController(identifier: "entry") as! EntryViewController
@@ -55,16 +57,24 @@ class ViewController: UIViewController {
         
         tableView.reloadData() //reload table view to show new updated tasks
         
+        if tasks.count > 0 {
+            noneLabel.text = ""
+            self.tableView.isHidden = false
+        }else{
+            noneLabel.text = "Nothing to do!"
+            self.tableView.isHidden = true
+        }
     }
     
     @IBAction func getAllTasks(){
         tasks.removeAll() //dont want to show duplicates
         ids.removeAll()
+        descriptions.removeAll()
         
         let dailyDoDB = FMDatabase(path: databasePath as String)
         
         if (dailyDoDB.open()) {
-            let querySQL = "SELECT id, taskString FROM tasks;"
+            let querySQL = "SELECT id, taskString, description FROM tasks;"
             if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
             
                 while results.next() {
@@ -73,12 +83,20 @@ class ViewController: UIViewController {
                         tasks.append(taskString)
                         ids.append(taskID)
                     }
+                    
+                    if let desc = results.string(forColumn: "description"){
+                        descriptions.append(desc)
+                    }else{
+                        descriptions.append("")
+                    }
                 }
                 print("Retrieved Tasks: \(tasks)")
                 print("Retrieved IDs: \(ids)")
+                print("Retrieved Descriptions: \(descriptions)")
                     
             } else {
                 print("No records found.")
+                
             }
             dailyDoDB.close()
             
@@ -90,9 +108,11 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        self.title = "Tasks"
+        self.title = "To Do List"
         tableView.dataSource = self
         tableView.delegate = self
+        
+        
         
         //set up database
         let filemgr = FileManager.default
@@ -131,6 +151,28 @@ class ViewController: UIViewController {
                             id INTEGER PRIMARY KEY NOT NULL,
                             name TEXT
                         );
+                        
+                        INSERT INTO Weekdays (name) VALUES (
+                            "Sunday",
+                            "Monday",
+                            "Tuesday",
+                            "Wednesday",
+                            "Thursday",
+                            "Friday",
+                            "Saturday",
+                        )
+                        WHERE NOT EXISTS (SELECT 1 FROM Weekdays);
+                        
+                        INSERT INTO Tags (tag) VALUES (
+                            "Work",
+                            "School",
+                            "Misc",
+                            "Recreational",
+                            "Time sensitive",
+                            "High priority",
+                            "Low priority",
+                        )
+                        WHERE NOT EXISTS (SELECT 1 FROM Tags);
                         """
             
         if !(dailyDoDB.executeStatements(sql_stmt)) { print("Error: \(dailyDoDB.lastErrorMessage())")
@@ -141,8 +183,28 @@ class ViewController: UIViewController {
         
         // retrieve the saved tasks that currently exist
         updateTasks()
+        
     }
+    
+    @objc func deleteTask(taskIDDB: Int){
+        print("TASK index RECEIVED IS   ", taskIDDB)
 
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        if (dailyDoDB.open()) {
+        let deleteSQL = "DELETE FROM Tasks WHERE id = '\(taskIDDB)'"
+        let result = dailyDoDB.executeUpdate(deleteSQL, withArgumentsIn: [])
+            if !result {
+                print("Error: \(dailyDoDB.lastErrorMessage())")
+                
+            } else {
+                print("Deleted task with ID: \(taskIDDB)")
+                updateTasks()
+            }
+            dailyDoDB.close()
+        } else {
+            print("Error: \(dailyDoDB.lastErrorMessage())")
+        }
+    }
     
 
 
@@ -160,16 +222,39 @@ extension ViewController: UITableViewDelegate{
         print("Sending task name \(tasks[indexPath.row])")
         vc.taskIndex = indexPath.row
         vc.taskID = ids[indexPath.row]
+        vc.taskDescription = descriptions[indexPath.row]
         vc.update = {
             DispatchQueue.main.async{ //make sure we prioritize updating the actual tasks
                 self.updateTasks()
             }
         }
         print("task ID being sent is: ", indexPath.row)
+        print("task description being sent is: ", descriptions[indexPath.row])
         navigationController?.pushViewController(vc, animated: true)
         
     }
     
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+            let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (_, _, completionHandler) in
+                
+                // Remove the task from the data source
+               // self.tasks.remove(at: indexPath.row)
+               // self.descriptions.remove(at: indexPath.row)
+                
+                let idToRemove = self.ids[indexPath.row]
+              //  self.ids.remove(at: indexPath.row)
+
+                // Delete row from the table view
+                //tableView.deleteRows(at: [indexPath], with: .automatic)
+                
+                // Delete from the database
+                self.deleteTask(taskIDDB: idToRemove)
+
+                completionHandler(true) // Mark the action as completed
+            }
+            
+            return UISwipeActionsConfiguration(actions: [deleteAction])
+    }
 }
 
 extension ViewController: UITableViewDataSource{
@@ -185,7 +270,11 @@ extension ViewController: UITableViewDataSource{
         //recycles cells which are no longer visible on the scene
         let cell = tableView.dequeueReusableCell(withIdentifier: "TaskCell", for: indexPath)
         
+        cell.textLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
+        cell.detailTextLabel?.font = UIFont.systemFont(ofSize: 14, weight: .regular)
+        
         cell.textLabel?.text = tasks[indexPath.row]
+        cell.detailTextLabel?.text = descriptions[indexPath.row]
         return cell
     }
 }

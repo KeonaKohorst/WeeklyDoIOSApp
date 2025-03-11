@@ -10,10 +10,15 @@ import UIKit
 class TaskViewController: UIViewController {
     
     @IBOutlet var label: UILabel!
+    
+    @IBOutlet weak var descField: UITextView!
+    @IBOutlet weak var titleField: UITextField!
+    
     var databasePath = String()
     var taskName: String?
     var taskIndex: Int?
     var taskID: Int?
+    var taskDescription: String?
     var update: (() -> Void)?
 
     
@@ -25,7 +30,10 @@ class TaskViewController: UIViewController {
         let dirPaths = filemgr.urls(for: .documentDirectory, in: .userDomainMask)
         databasePath = dirPaths[0].appendingPathComponent("dailydo.db").path
        
-        label.text = taskName
+        //label.text = taskName
+        titleField.text = taskName
+        descField.text = taskDescription
+        self.title = "Task Details"
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done Task", style: .done, target: self, action: #selector(deleteTask))
 
@@ -53,8 +61,6 @@ class TaskViewController: UIViewController {
             } else {
                 print("Deleted task with ID: \(taskIDDB)")
                 update?()
-                
-                //reassignUserDefaultsKeys()
                 
                 navigationController?.popViewController(animated: true)
                 
