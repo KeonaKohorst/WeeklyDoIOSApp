@@ -51,6 +51,13 @@ class ViewController: UIViewController {
         navigationController?.pushViewController(vc, animated: true)
     }
     
+    @IBAction func didTapSort(){
+        if plainTableView.isEditing{
+            plainTableView.isEditing = false
+        }else{
+            plainTableView.isEditing = true
+        }
+    }
   
     
     func updateTasks(){
@@ -221,17 +228,15 @@ class ViewController: UIViewController {
         plainTableView.delegate = self
         
        
-        
-        
+      
         
         //set up database
-        print("SETTIN G UP DB")
         let filemgr = FileManager.default
         let dirPaths = filemgr.urls(for: .documentDirectory, in: .userDomainMask)
         
         databasePath = dirPaths[0].appendingPathComponent("dailydo.db").path
         
-        if !filemgr.fileExists(atPath: databasePath as String) {
+        if !filemgr.fileExists(atPath: databasePath as String) { //this only runs if there is not already a db file
            let dailyDoDB = FMDatabase(path: databasePath as String)
         
         
@@ -389,11 +394,23 @@ extension ViewController: UITableViewDelegate{
             
             return UISwipeActionsConfiguration(actions: [deleteAction])
     }
+    
+    
 }
 
 extension ViewController: UITableViewDataSource{
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int{
         return tasks.count
+    }
+    
+    func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
+        return true
+    }
+    
+    func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
+        tasks.swapAt(sourceIndexPath.row, destinationIndexPath.row)
+        ids.swapAt(sourceIndexPath.row, destinationIndexPath.row)
+        descriptions.swapAt(sourceIndexPath.row, destinationIndexPath.row)
     }
     
     //this is only called when tasks.count > 0

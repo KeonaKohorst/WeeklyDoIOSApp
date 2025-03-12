@@ -70,11 +70,18 @@
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" title="To Do List" id="A3A-9L-vra">
-                        <barButtonItem key="rightBarButtonItem" title="Add" image="plus" catalog="system" id="jl9-k4-toz">
-                            <connections>
-                                <action selector="didTapAdd" destination="BYZ-38-t0r" id="7rV-g1-eVV"/>
-                            </connections>
-                        </barButtonItem>
+                        <rightBarButtonItems>
+                            <barButtonItem title="Add" image="plus" catalog="system" id="jl9-k4-toz">
+                                <connections>
+                                    <action selector="didTapAdd" destination="BYZ-38-t0r" id="7rV-g1-eVV"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem title="Sort" id="ooh-mG-clF">
+                                <connections>
+                                    <action selector="didTapSort" destination="BYZ-38-t0r" id="KTR-qX-kYU"/>
+                                </connections>
+                            </barButtonItem>
+                        </rightBarButtonItems>
                     </navigationItem>
                     <connections>
                         <outlet property="noneLabel" destination="Lzt-tn-m0D" id="qQU-QV-fk8"/>
