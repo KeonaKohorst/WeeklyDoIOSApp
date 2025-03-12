@@ -21,6 +21,7 @@
 		79168EFD2D7BDA2F006A41D2 /* FMDatabasePool.m in Sources */ = {isa = PBXBuildFile; fileRef = 79168EF32D7BDA2E006A41D2 /* FMDatabasePool.m */; };
 		79168EFE2D7BDA2F006A41D2 /* FMDatabaseAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 79168EF82D7BDA2F006A41D2 /* FMDatabaseAdditions.m */; };
 		79168F012D7BDE0C006A41D2 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79168F002D7BDE0C006A41D2 /* libsqlite3.tbd */; };
+		79C2F5892D80C5EA00DB9F4C /* FilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C2F5882D80C5EA00DB9F4C /* FilterViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,6 +48,7 @@
 		79168EF82D7BDA2F006A41D2 /* FMDatabaseAdditions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FMDatabaseAdditions.m; sourceTree = "<group>"; };
 		79168EF92D7BDA2F006A41D2 /* FMDatabaseQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabaseQueue.h; sourceTree = "<group>"; };
 		79168F002D7BDE0C006A41D2 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
+		79C2F5882D80C5EA00DB9F4C /* FilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -102,6 +104,7 @@
 				79168EB72D7AA3DE006A41D2 /* LaunchScreen.storyboard */,
 				79168EBA2D7AA3DE006A41D2 /* Info.plist */,
 				79168EEE2D7BDA2D006A41D2 /* ToDoApp-Bridging-Header.h */,
+				79C2F5882D80C5EA00DB9F4C /* FilterViewController.swift */,
 			);
 			path = ToDoApp;
 			sourceTree = "<group>";
@@ -191,6 +194,7 @@
 				79168EFB2D7BDA2F006A41D2 /* FMResultSet.m in Sources */,
 				79168EC32D7AAE15006A41D2 /* TaskViewController.swift in Sources */,
 				79168EFD2D7BDA2F006A41D2 /* FMDatabasePool.m in Sources */,
+				79C2F5892D80C5EA00DB9F4C /* FilterViewController.swift in Sources */,
 				79168EAD2D7AA3DB006A41D2 /* AppDelegate.swift in Sources */,
 				79168EAF2D7AA3DB006A41D2 /* SceneDelegate.swift in Sources */,
 				79168EFA2D7BDA2F006A41D2 /* FMDatabaseQueue.m in Sources */,

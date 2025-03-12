@@ -29,15 +29,18 @@ class ViewController: UIViewController {
     var tasks: [String] = []
     var descriptions: [String] = []
     var ids: [Int] = []
+    var weekday: String = ""
     
     var databasePath = String()
-    @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var plainTableView: UITableView!
     @IBOutlet weak var noneLabel: UILabel!
+  
     
     @IBAction func didTapAdd(){
         let vc = storyboard?.instantiateViewController(identifier: "entry") as! EntryViewController
         
         vc.title = "New Task"
+        vc.weekday = weekday
         vc.update = {
             //when we call this function we wanna reload the table view
             //and refetch the tasks
@@ -53,20 +56,25 @@ class ViewController: UIViewController {
     func updateTasks(){
         print("ENTERING UPDATE TASKS IN VIEW CONTROLLER")
         //get tasks from the DB
-        getAllTasks()
+        if(weekday == "All"){
+            getAllUnfinishedTasks()
+        }else{
+            print("Geting all unfinished tasks for weekday \(weekday)")
+            getAllUnfinishedTasksForWeekday()
+        }
         
-        tableView.reloadData() //reload table view to show new updated tasks
+        plainTableView.reloadData() //reload table view to show new updated tasks
         
         if tasks.count > 0 {
             noneLabel.text = ""
-            self.tableView.isHidden = false
+            self.plainTableView.isHidden = false
         }else{
             noneLabel.text = "Nothing to do!"
-            self.tableView.isHidden = true
+            self.plainTableView.isHidden = true
         }
     }
     
-    @IBAction func getAllTasks(){
+    @IBAction func getAllUnfinishedTasks(){
         tasks.removeAll() //dont want to show duplicates
         ids.removeAll()
         descriptions.removeAll()
@@ -74,7 +82,7 @@ class ViewController: UIViewController {
         let dailyDoDB = FMDatabase(path: databasePath as String)
         
         if (dailyDoDB.open()) {
-            let querySQL = "SELECT id, taskString, description FROM tasks;"
+            let querySQL = "SELECT id, taskString, description FROM tasks WHERE finished != true;"
             if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
             
                 while results.next() {
@@ -93,7 +101,24 @@ class ViewController: UIViewController {
                 print("Retrieved Tasks: \(tasks)")
                 print("Retrieved IDs: \(ids)")
                 print("Retrieved Descriptions: \(descriptions)")
+                
+                let selectSQL = "SELECT t.taskString, t.weekday, w.id, w.name FROM tasks t, weekdays w WHERE t.finished != true AND w.id = t.weekday;"
+                print("Checking query results")
+                if let results: FMResultSet = dailyDoDB.executeQuery(selectSQL, withArgumentsIn: []) {
                     
+                    while results.next() {
+                         // Get task ID as Int
+                        let taskString = results.string(forColumn: "taskString")
+                        let wID = Int(results.int(forColumn: "weekday"))
+                        
+                        let weekdayID = Int(results.int(forColumn: "id"))
+                        
+                        let day = results.string(forColumn: "name")
+                      
+                        print("Task: \(taskString!) wID: \(wID), weekday id: \(weekdayID), day: \(day!)")
+                    }
+                }
+                
             } else {
                 print("No records found.")
                 
@@ -101,20 +126,106 @@ class ViewController: UIViewController {
             dailyDoDB.close()
             
         }
-    
     }
     
+    @IBAction func getAllUnfinishedTasksForWeekday() {
+        print("GETTING UNFINISHED TASKS FOR \(weekday)")
+        //
+
+        tasks.removeAll() // Remove duplicates
+        ids.removeAll()
+        descriptions.removeAll()
+
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+
+        if dailyDoDB.open() {
+            let querySQL = "SELECT t.id, t.taskString, t.description, w.name FROM tasks t JOIN weekdays w ON w.id = t.weekday WHERE t.finished != true AND w.name = '\(weekday)';"
+            if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
+                while results.next() {
+                    let taskID = Int(results.int(forColumn: "id"))  // Get task ID as Int
+                    if let taskString = results.string(forColumn: "taskString") {
+                        tasks.append(taskString)
+                        ids.append(taskID)
+                    }
+
+                    if let desc = results.string(forColumn: "description") {
+                        descriptions.append(desc)
+                    } else {
+                        descriptions.append("")
+                    }
+                }
+                print("Retrieved Tasks: \(tasks)")
+                print("Retrieved IDs: \(ids)")
+                print("Retrieved Descriptions: \(descriptions)")
+            } else {
+                print("Error executing query: \(dailyDoDB.lastErrorMessage())")
+            }
+
+            
+            
+            
+            
+           
+
+            dailyDoDB.close()
+        } else {
+            print("Error opening database: \(dailyDoDB.lastErrorMessage())")
+        }
+    }
+
+    @IBAction func getAllFinishedTasks(){
+        tasks.removeAll() //dont want to show duplicates
+        ids.removeAll()
+        descriptions.removeAll()
+        
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        
+        if (dailyDoDB.open()) {
+            let querySQL = "SELECT id, taskString, description FROM tasks WHERE finished = true;"
+            if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
+                
+                while results.next() {
+                    let taskID = Int(results.int(forColumn: "id"))  // Get task ID as Int
+                    if let taskString = results.string(forColumn: "taskString") {
+                        tasks.append(taskString)
+                        ids.append(taskID)
+                    }
+                    
+                    if let desc = results.string(forColumn: "description"){
+                        descriptions.append(desc)
+                    }else{
+                        descriptions.append("")
+                    }
+                }
+                print("Retrieved Finished Tasks: \(tasks)")
+                print("Retrieved Finished IDs: \(ids)")
+                print("Retrieved Finished Descriptions: \(descriptions)")
+                
+            } else {
+                print("No records found.")
+                
+            }
+            
+            
+            dailyDoDB.close()
+            
+        }
+    }
+  
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        self.title = "To Do List"
-        tableView.dataSource = self
-        tableView.delegate = self
+        self.title = "\(weekday)"
+        plainTableView.dataSource = self
+        plainTableView.delegate = self
+        
+       
         
         
         
         //set up database
+        print("SETTIN G UP DB")
         let filemgr = FileManager.default
         let dirPaths = filemgr.urls(for: .documentDirectory, in: .userDomainMask)
         
@@ -124,68 +235,91 @@ class ViewController: UIViewController {
            let dailyDoDB = FMDatabase(path: databasePath as String)
         
         
-        if (dailyDoDB.open()) {
-      
-            
-        let sql_stmt = """
-                        CREATE TABLE IF NOT EXISTS Tasks (
-                            id INTEGER PRIMARY KEY NOT NULL,
-                            taskString TEXT,
-                            description TEXT,
-                            indexInList INTEGER,
-                            weekday INTEGER,
-                            finished BOOLEAN DEFAULT 0,
-                            oneTimeTask BOOLEAN DEFAULT 0,
-                            tag INTEGER,
-                            date TEXT,
-                            FOREIGN KEY (tag) REFERENCES Tags (id),
-                            FOREIGN KEY (weekday) REFERENCES Weekdays (id)
-                        );
+            if (dailyDoDB.open()) {
+                print("OPENED DB")
+                
+                let sql_stmt = """
+                            CREATE TABLE IF NOT EXISTS Tasks (
+                                id INTEGER PRIMARY KEY NOT NULL,
+                                taskString TEXT,
+                                description TEXT,
+                                indexInList INTEGER,
+                                weekday INTEGER,
+                                finished BOOLEAN DEFAULT 0,
+                                oneTimeTask BOOLEAN DEFAULT 0,
+                                tag INTEGER,
+                                date TEXT,
+                                FOREIGN KEY (tag) REFERENCES Tags (id),
+                                FOREIGN KEY (weekday) REFERENCES Weekdays (id)
+                            );
 
-                        CREATE TABLE IF NOT EXISTS Tags (
-                            id INTEGER PRIMARY KEY NOT NULL,
-                            tag TEXT
-                        );
+                            CREATE TABLE IF NOT EXISTS Tags (
+                                id INTEGER PRIMARY KEY NOT NULL,
+                                tag TEXT
+                            );
 
-                        CREATE TABLE IF NOT EXISTS Weekdays (
-                            id INTEGER PRIMARY KEY NOT NULL,
-                            name TEXT
-                        );
-                        
-                        INSERT INTO Weekdays (name) VALUES (
-                            "Sunday",
-                            "Monday",
-                            "Tuesday",
-                            "Wednesday",
-                            "Thursday",
-                            "Friday",
-                            "Saturday",
-                        )
-                        WHERE NOT EXISTS (SELECT 1 FROM Weekdays);
-                        
-                        INSERT INTO Tags (tag) VALUES (
-                            "Work",
-                            "School",
-                            "Misc",
-                            "Recreational",
-                            "Time sensitive",
-                            "High priority",
-                            "Low priority",
-                        )
-                        WHERE NOT EXISTS (SELECT 1 FROM Tags);
-                        """
+                            CREATE TABLE IF NOT EXISTS Weekdays (
+                                id INTEGER PRIMARY KEY NOT NULL,
+                                name TEXT
+                            );
+                            
+                            
+
+                            """
+                
+                    if !(dailyDoDB.executeStatements(sql_stmt)) {
+                        print("Error: \(dailyDoDB.lastErrorMessage())")
+                    }
+                
+                    //fill the weekdays and tags tables
+                    populateDB()
+
+                    dailyDoDB.close()
             
-        if !(dailyDoDB.executeStatements(sql_stmt)) { print("Error: \(dailyDoDB.lastErrorMessage())")
+        } else {
+            print("Error: \(dailyDoDB.lastErrorMessage())") }
+            print("COULD NOT OPEN DB")
         }
-        dailyDoDB.close() } else {
-        print("Error: \(dailyDoDB.lastErrorMessage())") }
-        }
+        
+       
+        
         
         // retrieve the saved tasks that currently exist
         updateTasks()
         
     }
     
+    @objc func populateDB(){
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        
+        if dailyDoDB.open() {
+            print("OPENED DB")
+
+            // Insert Tags
+            let tags = ["Work", "School", "Misc", "Recreational", "Time sensitive", "High priority", "Low priority"]
+            for tag in tags {
+                let insertTagSQL = "INSERT INTO Tags (tag) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM Tags WHERE tag = ?);"
+                if !dailyDoDB.executeUpdate(insertTagSQL, withArgumentsIn: [tag, tag]) {
+                    print("Error inserting tag \(tag): \(dailyDoDB.lastErrorMessage())")
+                }
+            }
+
+            // Insert Weekdays
+            let weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+            for day in weekdays {
+                let insertDaySQL = "INSERT INTO Weekdays (name) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM Weekdays WHERE name = ?);"
+                if !dailyDoDB.executeUpdate(insertDaySQL, withArgumentsIn: [day, day]) {
+                    print("Error inserting weekday \(day): \(dailyDoDB.lastErrorMessage())")
+                }
+            }
+
+            print("Inserted weekdays and tags successfully")
+            dailyDoDB.close()
+        } else {
+            print("Error opening database: \(dailyDoDB.lastErrorMessage())")
+        }
+    }
+
     @objc func deleteTask(taskIDDB: Int){
         print("TASK index RECEIVED IS   ", taskIDDB)
 
@@ -269,7 +403,7 @@ extension ViewController: UITableViewDataSource{
         //and memory usage
         //recycles cells which are no longer visible on the scene
         let cell = tableView.dequeueReusableCell(withIdentifier: "TaskCell", for: indexPath)
-        
+        cell.backgroundColor = UIColor(named: "pink")
         cell.textLabel?.font = UIFont.systemFont(ofSize: 18, weight: .bold)
         cell.detailTextLabel?.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         
