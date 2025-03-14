@@ -110,33 +110,43 @@
                                 <textInputTraits key="textInputTraits"/>
                             </textField>
                             <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" textAlignment="natural" translatesAutoresizingMaskIntoConstraints="NO" id="doL-q3-WZw">
-                                <rect key="frame" x="10" y="131" width="373" height="677"/>
+                                <rect key="frame" x="10" y="176" width="373" height="632"/>
                                 <color key="backgroundColor" name="white"/>
                                 <color key="textColor" systemColor="labelColor"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
                             </textView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="et2-yP-6cF">
+                                <rect key="frame" x="10" y="131" width="93.666666666666671" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="filled" title="Weekday">
+                                    <color key="baseBackgroundColor" name="teal"/>
+                                </buttonConfiguration>
+                            </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="o8o-PX-BOj"/>
                         <color key="backgroundColor" name="yellow"/>
                         <constraints>
+                            <constraint firstItem="et2-yP-6cF" firstAttribute="top" secondItem="gh5-Fl-gNa" secondAttribute="bottom" constant="10" id="9To-UI-zch"/>
                             <constraint firstItem="gh5-Fl-gNa" firstAttribute="top" secondItem="o8o-PX-BOj" secondAttribute="top" constant="10" id="BQL-Qu-IMe"/>
+                            <constraint firstItem="et2-yP-6cF" firstAttribute="leading" secondItem="o8o-PX-BOj" secondAttribute="leading" constant="10" id="H1D-Ro-54A"/>
                             <constraint firstItem="o8o-PX-BOj" firstAttribute="trailing" secondItem="gh5-Fl-gNa" secondAttribute="trailing" constant="10" id="Klu-T5-wMb"/>
                             <constraint firstItem="doL-q3-WZw" firstAttribute="leading" secondItem="o8o-PX-BOj" secondAttribute="leading" constant="10" id="RBs-7C-IOu"/>
                             <constraint firstItem="o8o-PX-BOj" firstAttribute="bottom" secondItem="doL-q3-WZw" secondAttribute="bottom" constant="10" id="WhV-xP-nRH"/>
-                            <constraint firstItem="doL-q3-WZw" firstAttribute="top" secondItem="gh5-Fl-gNa" secondAttribute="bottom" constant="10" id="Zu0-r7-J3r"/>
+                            <constraint firstItem="doL-q3-WZw" firstAttribute="top" secondItem="et2-yP-6cF" secondAttribute="bottom" constant="10" id="ioZ-Rt-3st"/>
                             <constraint firstItem="gh5-Fl-gNa" firstAttribute="leading" secondItem="o8o-PX-BOj" secondAttribute="leading" constant="10" id="pXE-ne-wSZ"/>
                             <constraint firstItem="o8o-PX-BOj" firstAttribute="trailing" secondItem="doL-q3-WZw" secondAttribute="trailing" constant="10" id="wrd-zC-kwY"/>
                         </constraints>
                     </view>
                     <connections>
+                        <outlet property="button" destination="et2-yP-6cF" id="LsF-C7-w6g"/>
                         <outlet property="descField" destination="doL-q3-WZw" id="YMh-LR-U6a"/>
                         <outlet property="titleField" destination="gh5-Fl-gNa" id="cGN-NC-3EQ"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="g6C-Sm-ex1" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1645" y="6"/>
+            <point key="canvasLocation" x="1643.5114503816794" y="5.6338028169014089"/>
         </scene>
         <!--Entry View Controller-->
         <scene sceneID="Whx-Z8-STE">
@@ -227,7 +237,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" estimatedSectionHeaderHeight="-1" sectionFooterHeight="18" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="wgA-5N-6AQ">
-                                <rect key="frame" x="0.0" y="113" width="393" height="705"/>
+                                <rect key="frame" x="0.0" y="165" width="393" height="653"/>
                                 <color key="backgroundColor" red="0.96862745100000003" green="1" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <color key="separatorColor" red="0.12925170068027211" green="0.30588235294117649" blue="0.41960784313725491" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <color key="sectionIndexBackgroundColor" red="0.96862745100000003" green="1" blue="0.96862745100000003" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -270,19 +280,19 @@
     <resources>
         <image name="plus" catalog="system" width="128" height="113"/>
         <namedColor name="blue">
-            <color red="0.10196078431372549" green="0.32549019607843138" blue="0.36078431372549019" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.10199999809265137" green="0.32499998807907104" blue="0.36100000143051147" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <namedColor name="pink">
-            <color red="1" green="0.41960784313725491" blue="0.41960784313725491" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.41999998688697815" blue="0.41999998688697815" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <namedColor name="teal">
-            <color red="0.30588235294117649" green="0.80392156862745101" blue="0.76862745098039209" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.3059999942779541" green="0.80400002002716064" blue="0.76899999380111694" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <namedColor name="white">
-            <color red="0.96862745098039216" green="1" blue="0.96862745098039216" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.96899998188018799" green="1" blue="0.96899998188018799" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <namedColor name="yellow">
-            <color red="1" green="0.90196078431372551" blue="0.60531389713287354" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="1" green="0.90200001001358032" blue="0.60500001907348633" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <systemColor name="labelColor">
             <color red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>

@@ -10,11 +10,13 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
     
     @IBOutlet weak var tableView: UITableView!
     
-    var weekdays: [String] = ["All", "Sunday", "Monday", "Tuesday", "Wednesday",  "Thursday", "Friday", "Saturday"]
+    var weekdays: [String] = ["All", "Sunday", "Monday", "Tuesday", "Wednesday",  "Thursday", "Friday", "Saturday", "Finished"]
+    
+
     
     //based on the ids in the database, should probably query for these
     //to populate this array
-    var weekdayIDs: [String] = ["0", "2", "1", "3", "4", "5", "6", "7"]
+    //var weekdayIDs: [String] = ["0", "2", "1", "3", "4", "5", "6", "7", "8"]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,7 +41,29 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "DayCell", for: indexPath)
         cell.textLabel?.text = weekdays[indexPath.row]
-        cell.backgroundColor = UIColor(named: "pink")
+        cell.backgroundColor = (indexPath.row == 8) ? UIColor(named: "pink") : UIColor(named: "pink")
+        if let label = cell.textLabel{
+        
+            label.font = UIFont.boldSystemFont(ofSize: 19)
+        }
+        
+        if(indexPath.row == 0){
+            cell.imageView?.image = UIImage(systemName: "staroflife.fill")
+            cell.imageView?.tintColor = UIColor(named: "white")
+            
+        }
+        
+        if(indexPath.row > 0 && indexPath.row < 8){
+            cell.imageView?.image = UIImage(systemName: "doc.plaintext")
+            cell.imageView?.tintColor = UIColor(named: "white")
+            
+        }
+        
+        if(indexPath.row == 8){
+            //add icon
+            cell.imageView?.image = UIImage(systemName: "checkmark.circle.fill")
+            cell.imageView?.tintColor = UIColor(named: "white")
+        }
         
         return cell
     }
@@ -52,7 +76,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
         print("Row selected is \(indexPath.row)")
         vc.title = "To Do"
         vc.weekday = weekdays[indexPath.row]
-        print("Sending weekday \(weekdays[indexPath.row])")
+        print("Sending weekday/category \(weekdays[indexPath.row])")
         navigationController?.pushViewController(vc, animated: true)
     }
     

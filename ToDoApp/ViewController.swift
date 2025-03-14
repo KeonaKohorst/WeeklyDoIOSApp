@@ -111,6 +111,32 @@ class ViewController: UIViewController {
         
     }
     
+    func getIdForWeekday(name: String) -> Int {
+        // Get weekday from the ID
+        //print("Get weekday by id: \(id)")
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        
+        if (dailyDoDB.open()) {
+            let getSQL = "SELECT id FROM Weekdays WHERE name = '\(name)'"
+            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
+                if result.next() { // move to the first row with .next()
+                    let weekdayID = Int(result.int(forColumn: "id"))
+                    
+                    return weekdayID
+                } else {
+                    print("Getid for weekday function: No matching weekday id found for name \(name)")
+                }
+            } else {
+                print("Failed to fetch id by weekday: \(dailyDoDB.lastErrorMessage())")
+            }
+        }else{
+            print("Failed to open DB")
+            
+        }
+        return 0
+        
+    }
+    
     func printGroupedTasks(_ groupedTasks: [String: [Task]]) {
         for (day, tasks) in groupedTasks {
             print("Day: \(day)")
@@ -129,6 +155,10 @@ class ViewController: UIViewController {
         //get tasks from the DB
         if(weekday == "All"){
             getAllUnfinishedTasks()
+            printGroupedTasks(groupedTasks)
+        }else if(weekday == "Finished"){
+            print("Category is finished tasks")
+            getAllFinishedTasks()
             printGroupedTasks(groupedTasks)
         }else{
             print("Getting all unfinished tasks for weekday \(weekday)")
@@ -226,13 +256,13 @@ class ViewController: UIViewController {
     }
 
     @IBAction func getAllFinishedTasks(){
-        
+        print("GETTING FINISHED TASKS")
         groupedTasks.removeAll()
         
         let dailyDoDB = FMDatabase(path: databasePath as String)
         
         if (dailyDoDB.open()) {
-            let querySQL = "SELECT id, taskString, description, indexInList, weekday FROM tasks WHERE finished = true;"
+            let querySQL = "SELECT id, taskString, description, indexInList, weekday FROM tasks WHERE finished = true ORDER BY weekday, indexInList;"
             if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
                 
                 while results.next() {
@@ -242,6 +272,7 @@ class ViewController: UIViewController {
                     let weekdayID = Int(results.int(forColumn: "weekday"))
                     //print("Weekday ID from query for task \(taskString) is \(weekdayID)")
                     
+                    
                     var weekday = "General"
                     if(weekdayID != 0){
                         weekday = getWeekdayById(id: weekdayID)
@@ -249,11 +280,15 @@ class ViewController: UIViewController {
                     let indexInList = Int(results.int(forColumn: "indexInList"))
                     
                     let task = Task(weekday: weekday, taskString: taskString, description: desc, indexInList: indexInList, id: taskID)
+                    print("Task in all finished tasks is \(task)")
                     
                     if groupedTasks[weekday] == nil {
                         groupedTasks[weekday] = []
                     }
-                    groupedTasks[weekday]?.append(task)                }
+                    groupedTasks[weekday]?.append(task)
+                    
+                }
+                print("Done while loop through results")
                 
             } else {
                 print("No records found.")
@@ -419,6 +454,8 @@ extension ViewController: UITableViewDelegate{
         vc.taskID = task.id
         vc.taskDescription = task.description
         vc.taskIndex = indexPath.row
+        vc.weekday = thisWeekday
+        vc.weekdayID = getIdForWeekday(name: weekday)
         vc.update = {
             DispatchQueue.main.async{ //make sure we prioritize updating the actual tasks
                 self.updateTasks()
@@ -457,17 +494,19 @@ extension ViewController: UITableViewDelegate{
 extension ViewController: UITableViewDataSource{
     
     func numberOfSections(in tableView: UITableView) -> Int {
-        print("Number of sections in table view is \(groupedTasks.keys.count)")
+        
         //return groupedTasks.keys.count
-        if(weekday == "All"){
+        if(weekday == "All" || weekday == "Finished"){
+            print("Number of sections in table view is 8")
             return 8
         }else{
+            print("Number of sections in table view is 1")
             return 1
         }
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if(weekday == "All"){
+        if(weekday == "All" || weekday == "Finished"){
             return weekdaysOrder[section]
         }else{
             return weekday
@@ -475,7 +514,7 @@ extension ViewController: UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if(weekday == "All"){
+        if(weekday == "All" || weekday == "Finished"){
            return 30
         }else{
             return 0
@@ -483,7 +522,7 @@ extension ViewController: UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if(weekday != "All"){
+        if(weekday != "All" && weekday != "Finished"){
             return UIView()
         }
         let headerView = UIView()
@@ -510,7 +549,7 @@ extension ViewController: UITableViewDataSource{
         //return tasks.count
         //let weekday = weekdaysOrder[section]
        // return groupedTasks[weekday]?.count ?? 0
-        if weekday == "All" {
+        if weekday == "All" || weekday == "Finished" {
             //let keys = Array(groupedTasks.keys).sorted { weekdaysOrder.firstIndex(of: $0) ?? Int.max < weekdaysOrder.firstIndex(of: $1) ?? Int.max }
             //return groupedTasks[keys[section]]?.count ?? 0
             let weekday = weekdaysOrder[section]
@@ -530,14 +569,19 @@ extension ViewController: UITableViewDataSource{
         
         print("Source index section is \(sourceIndexPath.section)")
         //let day = groupedTasks.keys.sorted()[sourceIndexPath.section]
-        let day = (self.weekday == "All") ? self.weekdaysOrder[sourceIndexPath.section] : self.weekday
+        let day = (self.weekday == "All" || weekday == "Finished") ? self.weekdaysOrder[sourceIndexPath.section] : self.weekday
+        let destDay = (self.weekday == "All" || weekday == "Finished") ? self.weekdaysOrder[destinationIndexPath.section] : self.weekday
+        
+        //let dayID = getIdForWeekday(name: day)
+        //let destDayID = getIdForWeekday(name: destDay)
+        
         if var tasks = groupedTasks[day]{
             let sourceTask = tasks[sourceIndexPath.row]
-            print("Source task is \(sourceTask) at row \(sourceIndexPath.row)")
+            print("Source task is \(sourceTask) at row \(sourceIndexPath.row) and day \(day)")
           
             
             let destinationTask = tasks[destinationIndexPath.row]
-            print("Destination task is \(destinationTask) at row \(destinationIndexPath.row)")
+            print("Destination task is \(destinationTask) at row \(destinationIndexPath.row) and day \(destDay)")
             
             //make changes in the db
             let dailyDoDB = FMDatabase(path: databasePath as String)
@@ -602,7 +646,7 @@ extension ViewController: UITableViewDataSource{
         
         var task: Task?
 
-        if weekday == "All" {
+        if weekday == "All" || weekday == "Finished" {
             let thisWeekday = weekdaysOrder[indexPath.section]
             task = groupedTasks[thisWeekday]?[indexPath.row]
         } else {

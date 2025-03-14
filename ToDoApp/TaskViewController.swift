@@ -21,10 +21,30 @@ class TaskViewController: UIViewController {
     var taskDescription: String?
     var update: (() -> Void)?
     
+    var weekdayID: Int = 0
+    var weekday: String = "Weekday"
+    @IBOutlet weak var button: UIButton! //button to select the weekday
+    var menuChildren: [UIMenuElement] = []
+    var weekdays: [String] = ["General", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        //configure weekdays button
+        for weekday in weekdays{
+            menuChildren.append(UIAction(title: weekday, handler: actionClosure))
+        }
+        button.menu = UIMenu(options: .displayInline, children: menuChildren)
+        button.showsMenuAsPrimaryAction = true
+        button.changesSelectionAsPrimaryAction = true
+        
+        if(weekday != "All" && weekday != "General"){
+            //set the button title to the weekday
+            button.setTitle(weekday, for: .normal)
+        }else{
+            //button.setTitle("General", for: .normal)
+        }
         //set up database
         let filemgr = FileManager.default
         let dirPaths = filemgr.urls(for: .documentDirectory, in: .userDomainMask)
@@ -35,10 +55,39 @@ class TaskViewController: UIViewController {
         descField.text = taskDescription
         self.title = "Task Details"
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done Task", style: .done, target: self, action: #selector(deleteTask))
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done Task", style: .done, target: self, action: #selector(doneTask))
         
         // Do any additional setup after loading the view.
     }
+    
+    func getIdForWeekday(name: String) -> Int {
+        // Get weekday from the ID
+        //print("Get weekday by id: \(id)")
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        
+        if (dailyDoDB.open()) {
+            let getSQL = "SELECT id FROM Weekdays WHERE name = '\(name)'"
+            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
+                if result.next() { // move to the first row with .next()
+                    let weekdayID = Int(result.int(forColumn: "id"))
+                    
+                    return weekdayID
+                } else {
+                    print("Getid for weekday function: No matching weekday id found for name \(name)")
+                }
+            } else {
+                print("Failed to fetch id by weekday: \(dailyDoDB.lastErrorMessage())")
+            }
+        }else{
+            print("Failed to open DB")
+            
+        }
+        return 0
+        
+    }
+   
+    
+    let actionClosure = { (action: UIAction) in print(action.title)}
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -46,6 +95,8 @@ class TaskViewController: UIViewController {
         if self.isMovingFromParent {
             //save the changes the user made to the existing task
             print("UPDATING TASK!")
+            weekday = button.titleLabel!.text!
+            
             updateTask()
         }
     }
@@ -90,7 +141,7 @@ class TaskViewController: UIViewController {
             return
         }
         
-        print("TASK index RECEIVED IS   ", taskIDDB)
+        print("TASK ID in DB RECEIVED IS   ", taskIDDB)
         
         let dailyDoDB = FMDatabase(path: databasePath as String)
         if (dailyDoDB.open()) {
@@ -135,6 +186,7 @@ class TaskViewController: UIViewController {
             let dailyDoDB = FMDatabase(path: databasePath as String)
             if (dailyDoDB.open()){
                 
+                weekdayID = getIdForWeekday(name: weekday)
                 var updateSQL = ""
                 //if(day != "Weekday" && day != "All"){
                 
@@ -156,7 +208,7 @@ class TaskViewController: UIViewController {
                 
                 
                 //}else{
-                updateSQL = "UPDATE tasks SET taskString = '\(task)', description='\(desc)' WHERE id = \(taskID!)"
+                updateSQL = "UPDATE tasks SET taskString = '\(task)', description='\(desc)', weekday=\(weekdayID) WHERE id = \(taskID!)"
                 //}
                 
                 let result = dailyDoDB.executeUpdate(updateSQL, withArgumentsIn: [])
