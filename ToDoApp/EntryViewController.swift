@@ -23,9 +23,34 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
     //let button = UIButton(primaryAction: nil)
     var menuChildren: [UIMenuElement] = []
     var weekdays: [String] = ["General", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-
+    
+    var tag: String = "None"
+    @IBOutlet weak var tagButton: UIButton! //button to select a tag
+    var tagMenuChildren: [UIMenuElement] = []
+    var tags: [String] = ["None", "School", "Work", "Fun", "Event", "Chore"]
+    
+    let idTagMap: [Int: String] = [
+        0: "None",
+        1: "School",
+        2: "Work",
+        3: "Fun",
+        4: "Event",
+        5: "Chore"
+    ]
+    
+    let tagIdMap: [String: Int] = [
+        "None": 0,
+        "School": 1,
+        "Work": 2,
+        "Fun": 3,
+        "Event": 4,
+        "Chore": 5
+    ]
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        printAllTables()
+        printTagTable()
 
         //configure weekdays button
         for weekday in weekdays{
@@ -42,7 +67,17 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
             button.setTitle("General", for: .normal)
         }
         
+        //configure tags button
+        for tag in tags{
+            tagMenuChildren.append(UIAction(title: tag, handler: actionClosureTag))
+        }
+        tagButton.menu = UIMenu(options: .displayInline, children: tagMenuChildren)
+        tagButton.showsMenuAsPrimaryAction = true
+        tagButton.changesSelectionAsPrimaryAction = true
         
+       
+        tagButton.setTitle("None", for: .normal)
+    
         
         //set up database connection
         let filemgr = FileManager.default
@@ -63,6 +98,8 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
     
     let actionClosure = { (action: UIAction) in print(action.title)}
     
+    let actionClosureTag = { (action: UIAction) in print(action.title)}
+    
     @objc func saveTask(){
         //save contents of the field
         guard let text = field.text, !text.isEmpty else {
@@ -75,6 +112,8 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
             let desc = descField.text ?? ""
             
             var day: String = "General"
+            tag = tagButton.titleLabel!.text!
+            let tagId = tagIdMap[tag]
             
             if let selectedDay = button.title(for: .normal) {
                 day = selectedDay  // Assign value to the variable
@@ -98,7 +137,7 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
                             let indexInList = getLatestIndexInListForDay(day: day)
                             let newIndexInList = indexInList + 1
                             
-                            insertSQL = "INSERT INTO tasks (taskString, description, weekDay, indexInList) VALUES ('\(task)', '\(desc)', \(weekdayID), \(newIndexInList));"
+                            insertSQL = "INSERT INTO tasks (taskString, description, weekDay, indexInList, tag) VALUES ('\(task)', '\(desc)', \(weekdayID), \(newIndexInList), \(tagId!));"
                         } else {
                             print("No matching weekday found for \(day)")
                         }
@@ -192,7 +231,62 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
         return 0
         
     }
+    
+    func printTagTable() {
+        
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        
+        if (dailyDoDB.open()) {
+            let getSQL = "SELECT * FROM tags;"
+            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
+                if result.next() {
+                    let id = Int(result.int(forColumn: "id"))
+                    let tag = result.string(forColumn: "tag")
+                    
+                    print("Tag with ID: \(id) and Tag: \(tag!)")
+                    
+                } else {
+                    print("Entry: No tags found")
+                }
+            } else {
+                print("Entry: Failed to fetch tags: \(dailyDoDB.lastErrorMessage())")
+            }
+        }else{
+            print("Failed to open DB")
+            
+        }
+  
+        
+    }
 
+    func printAllTables() {
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        
+        if dailyDoDB.open() {
+            let getSQL = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'"
+            
+            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
+                print("Tables in database:")
+                var tablesFound = false
+                while result.next() {
+                    if let tableName = result.string(forColumn: "name") {
+                        tablesFound = true
+                        print("- \(tableName)")
+                    }
+                }
+                
+                if(!tablesFound){
+                    print("no tables found in db")
+                }
+            } else {
+                print("Failed to fetch table names: \(dailyDoDB.lastErrorMessage())")
+            }
+            
+            dailyDoDB.close()
+        } else {
+            print("Failed to open DB")
+        }
+    }
 
 
 }

@@ -10,7 +10,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
     
     @IBOutlet weak var tableView: UITableView!
     
-    var weekdays: [String] = ["All", "Sunday", "Monday", "Tuesday", "Wednesday",  "Thursday", "Friday", "Saturday", "Finished"]
+    var weekdays: [String] = ["All", "Sunday", "Monday", "Tuesday", "Wednesday",  "Thursday", "Friday", "Saturday", "Finished", "School"]
     
 
     

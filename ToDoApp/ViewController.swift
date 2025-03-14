@@ -30,6 +30,7 @@ struct Task{
     let description: String
     let indexInList: Int
     let id: Int
+    let tag: Int
 }
 
 class ViewController: UIViewController {
@@ -44,14 +45,22 @@ class ViewController: UIViewController {
     var groupedTasks: [String: [Task]] = [:]
     var weekdaysOrder: [String] = ["General", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
     
-    let idWeekdayMap: [Int: String] = [ //dont use this
-        1: "Monday",
-        2: "Sunday",
-        3: "Tuesday",
-        4: "Wednesday",
-        5: "Thursday",
-        6: "Friday",
-        7: "Saturday"
+    let idTagMap: [Int: String] = [
+        0: "None",
+        1: "School",
+        2: "Work",
+        3: "Fun",
+        4: "Event",
+        5: "Chore"
+    ]
+    
+    let tagIdMap: [String: Int] = [
+        "None": 0,
+        "School": 1,
+        "Work": 2,
+        "Fun": 3,
+        "Event": 4,
+        "Chore": 5
     ]
     
     var databasePath = String()
@@ -187,7 +196,7 @@ class ViewController: UIViewController {
         let dailyDoDB = FMDatabase(path: databasePath as String)
         
         if (dailyDoDB.open()) {
-            let querySQL = "SELECT id, taskString, description, indexInList, weekday FROM tasks WHERE finished != true ORDER BY weekday, indexInList;"
+            let querySQL = "SELECT id, taskString, description, indexInList, weekday, tag FROM tasks WHERE finished != true ORDER BY weekday, indexInList;"
             if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
             
                 while results.next() {
@@ -195,6 +204,7 @@ class ViewController: UIViewController {
                     let taskString = results.string(forColumn: "taskString" ) ?? "Untitled"
                     let desc = results.string(forColumn: "description") ?? ""
                     let weekdayID = Int(results.int(forColumn: "weekday"))
+                    let tagID = Int(results.int(forColumn: "tag"))
                     //print("Weekday ID from query for task \(taskString) is \(weekdayID)")
                     
                     var weekday = "General"
@@ -203,7 +213,7 @@ class ViewController: UIViewController {
                     }
                     let indexInList = Int(results.int(forColumn: "indexInList"))
                     
-                    let task = Task(weekday: weekday, taskString: taskString, description: desc, indexInList: indexInList, id: taskID)
+                    let task = Task(weekday: weekday, taskString: taskString, description: desc, indexInList: indexInList, id: taskID, tag: tagID)
                     
                     if groupedTasks[weekday] == nil {
                         groupedTasks[weekday] = []
@@ -228,7 +238,7 @@ class ViewController: UIViewController {
         let dailyDoDB = FMDatabase(path: databasePath as String)
 
         if dailyDoDB.open() {
-            let querySQL = "SELECT t.id, t.taskString, t.description, w.name, t.indexInList FROM tasks t JOIN weekdays w ON w.id = t.weekday WHERE t.finished != true AND w.name = '\(weekday)' ORDER BY t.indexInList;"
+            let querySQL = "SELECT t.id, t.taskString, t.description, w.name, t.indexInList, t.tag FROM tasks t JOIN weekdays w ON w.id = t.weekday WHERE t.finished != true AND w.name = '\(weekday)' ORDER BY t.indexInList;"
             if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
                 while results.next() {
                     let taskID = Int(results.int(forColumn: "id"))  // Get task ID as Int
@@ -236,8 +246,9 @@ class ViewController: UIViewController {
                     let desc = results.string(forColumn: "description") ?? ""
                     let weekday = results.string(forColumn: "name") ?? "General"
                     let indexInList = Int(results.int(forColumn: "indexInList"))
+                    let tagID = Int(results.int(forColumn: "tag"))
                     
-                    let task = Task(weekday: weekday, taskString: taskString, description: desc, indexInList: indexInList, id: taskID)
+                    let task = Task(weekday: weekday, taskString: taskString, description: desc, indexInList: indexInList, id: taskID, tag: tagID)
                     
                     if groupedTasks[weekday] == nil {
                         groupedTasks[weekday] = []
@@ -262,7 +273,7 @@ class ViewController: UIViewController {
         let dailyDoDB = FMDatabase(path: databasePath as String)
         
         if (dailyDoDB.open()) {
-            let querySQL = "SELECT id, taskString, description, indexInList, weekday FROM tasks WHERE finished = true ORDER BY weekday, indexInList;"
+            let querySQL = "SELECT id, taskString, description, indexInList, weekday, tag FROM tasks WHERE finished = true ORDER BY weekday, indexInList;"
             if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
                 
                 while results.next() {
@@ -270,6 +281,7 @@ class ViewController: UIViewController {
                     let taskString = results.string(forColumn: "taskString" ) ?? "Untitled"
                     let desc = results.string(forColumn: "description") ?? ""
                     let weekdayID = Int(results.int(forColumn: "weekday"))
+                    let tagID = Int(results.int(forColumn: "tag"))
                     //print("Weekday ID from query for task \(taskString) is \(weekdayID)")
                     
                     
@@ -279,7 +291,7 @@ class ViewController: UIViewController {
                     }
                     let indexInList = Int(results.int(forColumn: "indexInList"))
                     
-                    let task = Task(weekday: weekday, taskString: taskString, description: desc, indexInList: indexInList, id: taskID)
+                    let task = Task(weekday: weekday, taskString: taskString, description: desc, indexInList: indexInList, id: taskID, tag: tagID)
                     print("Task in all finished tasks is \(task)")
                     
                     if groupedTasks[weekday] == nil {
@@ -455,6 +467,7 @@ extension ViewController: UITableViewDelegate{
         vc.taskDescription = task.description
         vc.taskIndex = indexPath.row
         vc.weekday = thisWeekday
+        vc.tagID = task.tag
         vc.weekdayID = getIdForWeekday(name: weekday)
         vc.update = {
             DispatchQueue.main.async{ //make sure we prioritize updating the actual tasks
@@ -656,6 +669,31 @@ extension ViewController: UITableViewDataSource{
         if let task = task {
             cell.textLabel?.text = task.taskString
             cell.detailTextLabel?.text = task.description
+            
+            let tag = idTagMap[task.tag]
+            if(tag == "School"){
+                cell.imageView?.image = UIImage(systemName: "book.fill")
+                cell.imageView?.tintColor = UIColor(named: "white")
+                
+            }else if(tag == "None"){
+                cell.imageView?.image = UIImage(systemName: "rectangle")
+                cell.imageView?.tintColor = UIColor(named: "white")
+                
+            }else if(tag == "Work"){
+
+                cell.imageView?.image = UIImage(systemName: "briefcase.fill")
+                cell.imageView?.tintColor = UIColor(named: "white")
+                    
+            }else if(tag == "Fun"){
+                cell.imageView?.image = UIImage(systemName: "smiley.fill")
+                cell.imageView?.tintColor = UIColor(named: "white")
+            }else if(tag == "Event"){
+                cell.imageView?.image = UIImage(systemName: "burst.fill")
+                cell.imageView?.tintColor = UIColor(named: "white")
+            }else if(tag == "Chore"){
+                cell.imageView?.image = UIImage(systemName: "hammer.fill")
+                cell.imageView?.tintColor = UIColor(named: "white")
+            }
         } else {
             cell.textLabel?.text = "No Task"
             cell.detailTextLabel?.text = ""
