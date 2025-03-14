@@ -114,8 +114,10 @@ class ViewController: UIViewController {
     func printGroupedTasks(_ groupedTasks: [String: [Task]]) {
         for (day, tasks) in groupedTasks {
             print("Day: \(day)")
+            var row = 0
             for task in tasks {
-                print("  - \(task)")
+                print("  - Row \(row): \(task)")
+                row += 1
             }
         }
     }
@@ -196,7 +198,7 @@ class ViewController: UIViewController {
         let dailyDoDB = FMDatabase(path: databasePath as String)
 
         if dailyDoDB.open() {
-            let querySQL = "SELECT t.id, t.taskString, t.description, w.name, t.indexInList FROM tasks t JOIN weekdays w ON w.id = t.weekday WHERE t.finished != true AND w.name = '\(weekday)';"
+            let querySQL = "SELECT t.id, t.taskString, t.description, w.name, t.indexInList FROM tasks t JOIN weekdays w ON w.id = t.weekday WHERE t.finished != true AND w.name = '\(weekday)' ORDER BY t.indexInList;"
             if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
                 while results.next() {
                     let taskID = Int(results.int(forColumn: "id"))  // Get task ID as Int
@@ -399,9 +401,13 @@ extension ViewController: UITableViewDelegate{
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath){
         tableView.deselectRow(at: indexPath, animated: true)
         
-      
-        let weekday = weekdaysOrder[indexPath.section]
-        guard let task = groupedTasks[weekday]?[indexPath.row] else {return}
+        var thisWeekday = "General"
+        if(weekday == "All"){
+            thisWeekday = weekdaysOrder[indexPath.section]
+        }else{
+            thisWeekday = weekday
+        }
+        guard let task = groupedTasks[thisWeekday]?[indexPath.row] else {return}
         
         let vc = storyboard?.instantiateViewController(identifier: "task") as! TaskViewController
         
@@ -427,7 +433,7 @@ extension ViewController: UITableViewDelegate{
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
             let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (_, _, completionHandler) in
  
-                let day = self.groupedTasks.keys.sorted()[indexPath.section]
+                let day = (self.weekday == "All") ? self.weekdaysOrder[indexPath.section] : self.weekday
                 if let tasks = self.groupedTasks[day]{
                     let task = tasks[indexPath.row]
                     let id = task.id
@@ -522,10 +528,16 @@ extension ViewController: UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         
-        let day = groupedTasks.keys.sorted()[sourceIndexPath.section]
+        print("Source index section is \(sourceIndexPath.section)")
+        //let day = groupedTasks.keys.sorted()[sourceIndexPath.section]
+        let day = (self.weekday == "All") ? self.weekdaysOrder[sourceIndexPath.section] : self.weekday
         if var tasks = groupedTasks[day]{
             let sourceTask = tasks[sourceIndexPath.row]
+            print("Source task is \(sourceTask) at row \(sourceIndexPath.row)")
+          
+            
             let destinationTask = tasks[destinationIndexPath.row]
+            print("Destination task is \(destinationTask) at row \(destinationIndexPath.row)")
             
             //make changes in the db
             let dailyDoDB = FMDatabase(path: databasePath as String)

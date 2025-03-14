@@ -22,7 +22,7 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var button: UIButton! //button to select the weekday
     //let button = UIButton(primaryAction: nil)
     var menuChildren: [UIMenuElement] = []
-    var weekdays: [String] = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    var weekdays: [String] = ["General", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -38,6 +38,8 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
         if(weekday != "All"){
             //set the button title to the weekday
             button.setTitle(weekday, for: .normal)
+        }else{
+            button.setTitle("General", for: .normal)
         }
         
         
@@ -72,7 +74,7 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
             
             let desc = descField.text ?? ""
             
-            var day: String = "Weekday"
+            var day: String = "General"
             
             if let selectedDay = button.title(for: .normal) {
                 day = selectedDay  // Assign value to the variable
@@ -83,7 +85,7 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
             if (dailyDoDB.open()){
                 
                 var insertSQL = ""
-                if(day != "Weekday" && day != "All"){
+                if(day != "General"){
 
                     // Get the ID for the day
                     let getSQL = "SELECT id FROM Weekdays WHERE name = '\(day)'"
@@ -92,7 +94,11 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
                             let weekdayID = result.int(forColumn: "id")
                             print("EntryViewController: Weekday id is \(weekdayID)")
                             
-                            insertSQL = "INSERT INTO tasks (taskString, description, weekDay) VALUES ('\(task)', '\(desc)', '\(weekdayID)')"
+                            //get the latest index in list for the day
+                            let indexInList = getLatestIndexInListForDay(day: day)
+                            let newIndexInList = indexInList + 1
+                            
+                            insertSQL = "INSERT INTO tasks (taskString, description, weekDay, indexInList) VALUES ('\(task)', '\(desc)', \(weekdayID), \(newIndexInList));"
                         } else {
                             print("No matching weekday found for \(day)")
                         }
@@ -101,9 +107,12 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
                     }
 
                     
-                    
+               
                 }else{
-                    insertSQL = "INSERT INTO tasks (taskString, description) VALUES ('\(task)', '\(desc)')"
+                    let indexInList = getLatestIndexInListForGeneral(day: "General")
+                    let newIndexInList = indexInList + 1
+                    print("The indexInList was \(indexInList) ad the new one is \(newIndexInList)")
+                    insertSQL = "INSERT INTO tasks (taskString, description, weekday, indexInList) VALUES ('\(task)', '\(desc)', 0, \(newIndexInList));"
                 }
                 
                 let result = dailyDoDB.executeUpdate(insertSQL, withArgumentsIn: [])
@@ -130,12 +139,59 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
             }
         }
 
+    }
+    
+    func getLatestIndexInListForDay(day: String) -> Int {
+        print("-----GET LATEST INDEX FOR DAY-----")
+        let dailyDoDB = FMDatabase(path: databasePath as String)
         
-       
-        
+        if (dailyDoDB.open()) {
+            let getSQL = "SELECT MAX(t.indexInList) AS indexInList FROM tasks t, weekdays w WHERE w.name= '\(day)' AND w.id = t.weekday;"
+            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
+                if result.next() {
+                    let index = Int(result.int(forColumn: "indexInList"))
+                    print("The latest index in list for the day \(day) is \(index)")
+                    return index
+                } else {
+                    print("Entry: Get index in list for day function: No matching name for \(day)")
+                }
+            } else {
+                print("Entry: Failed to fetch index in list by day: \(dailyDoDB.lastErrorMessage())")
+            }
+        }else{
+            print("Failed to open DB")
+            
+        }
+        print("The latest index in list for the day \(day) is 0")
+        return 0
         
     }
     
+    func getLatestIndexInListForGeneral(day: String) -> Int {
+        print("-----GET LATEST INDEX FOR GENERAL DAY-----")
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        
+        if (dailyDoDB.open()) {
+            let getSQL = "SELECT MAX(t.indexInList) AS indexInList FROM tasks t WHERE t.weekday = 0;"
+            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
+                if result.next() {
+                    let index = Int(result.int(forColumn: "indexInList"))
+                    print("The latest index in list for the day \(day) is \(index)")
+                    return index
+                } else {
+                    print("Entry: Get index in list for day function: No matching name for \(day)")
+                }
+            } else {
+                print("Entry: Failed to fetch index in list by day: \(dailyDoDB.lastErrorMessage())")
+            }
+        }else{
+            print("Failed to open DB")
+            
+        }
+        print("The latest index in list for the day \(day) is 0")
+        return 0
+        
+    }
 
 
 
