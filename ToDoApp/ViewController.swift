@@ -169,6 +169,9 @@ class ViewController: UIViewController {
             print("Category is finished tasks")
             getAllFinishedTasks()
             printGroupedTasks(groupedTasks)
+        }else if(tagIdMap.keys.contains(weekday)){
+            getAllUnfinishedTasksByTag(tag: weekday)
+            printGroupedTasks(groupedTasks)
         }else{
             print("Getting all unfinished tasks for weekday \(weekday)")
             getAllUnfinishedTasksForWeekday()
@@ -188,6 +191,46 @@ class ViewController: UIViewController {
             self.plainTableView.isHidden = true
         }
     }
+    
+    func getAllUnfinishedTasksByTag(tag: String){
+        groupedTasks.removeAll()
+        
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        
+        if (dailyDoDB.open()) {
+            let tagID = tagIdMap[tag]
+            let querySQL = "SELECT id, taskString, description, indexInList, weekday, tag FROM tasks WHERE finished != true AND tag=\(tagID!) ORDER BY weekday, indexInList;"
+            if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
+            
+                while results.next() {
+                    let taskID = Int(results.int(forColumn: "id"))  // Get task ID as Int
+                    let taskString = results.string(forColumn: "taskString" ) ?? "Untitled"
+                    let desc = results.string(forColumn: "description") ?? ""
+                    let weekdayID = Int(results.int(forColumn: "weekday"))
+                    let tagID = Int(results.int(forColumn: "tag"))
+                    //print("Weekday ID from query for task \(taskString) is \(weekdayID)")
+                    
+                    var weekday = "General"
+                    if(weekdayID != 0){
+                        weekday = getWeekdayById(id: weekdayID)
+                    }
+                    let indexInList = Int(results.int(forColumn: "indexInList"))
+                    
+                    let task = Task(weekday: weekday, taskString: taskString, description: desc, indexInList: indexInList, id: taskID, tag: tagID)
+                    
+                    if groupedTasks[weekday] == nil {
+                        groupedTasks[weekday] = []
+                    }
+                    groupedTasks[weekday]?.append(task)
+                }
+                
+            } else {
+                print("No records found.")
+                
+            }
+            dailyDoDB.close()
+            
+        }    }
     
     @IBAction func getAllUnfinishedTasks(){
         
@@ -448,13 +491,36 @@ extension ViewController: UITableViewDelegate{
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath){
         tableView.deselectRow(at: indexPath, animated: true)
         
-        var thisWeekday = "General"
-        if(weekday == "All"){
-            thisWeekday = weekdaysOrder[indexPath.section]
+        var thisWeekday = "unknown"
+        var selectedTask: Task? = nil
+        if tagIdMap.keys.contains(weekday){
+            // User selected from the tag view
+            let selectedTag = weekday
+            let matchingTasks = groupedTasks.values.flatMap  { $0 }.filter { $0.tag == tagIdMap[selectedTag] }
+            
+            if indexPath.row < matchingTasks.count{
+                selectedTask = matchingTasks[indexPath.row]
+            }
         }else{
-            thisWeekday = weekday
+            thisWeekday = "General"
+            if(weekday == "All"){
+                thisWeekday = weekdaysOrder[indexPath.section]
+            }else if(!tagIdMap.keys.contains(weekday)){
+                thisWeekday = weekday
+            }
+            selectedTask = groupedTasks[thisWeekday]?[indexPath.row]
+            
         }
-        guard let task = groupedTasks[thisWeekday]?[indexPath.row] else {return}
+        
+        
+        guard let task = selectedTask else{
+            print("No task found for selection at row \(indexPath.row)")
+            return
+        }
+        
+        
+       // guard let task = groupedTasks[thisWeekday]?[indexPath.row] else {return}
+      
         
         let vc = storyboard?.instantiateViewController(identifier: "task") as! TaskViewController
         
@@ -466,7 +532,7 @@ extension ViewController: UITableViewDelegate{
         vc.taskID = task.id
         vc.taskDescription = task.description
         vc.taskIndex = indexPath.row
-        vc.weekday = thisWeekday
+        vc.weekday = task.weekday
         vc.tagID = task.tag
         vc.weekdayID = getIdForWeekday(name: weekday)
         vc.update = {
@@ -509,7 +575,7 @@ extension ViewController: UITableViewDataSource{
     func numberOfSections(in tableView: UITableView) -> Int {
         
         //return groupedTasks.keys.count
-        if(weekday == "All" || weekday == "Finished"){
+        if(weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)){
             print("Number of sections in table view is 8")
             return 8
         }else{
@@ -519,7 +585,7 @@ extension ViewController: UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if(weekday == "All" || weekday == "Finished"){
+        if(weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)){
             return weekdaysOrder[section]
         }else{
             return weekday
@@ -527,7 +593,7 @@ extension ViewController: UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if(weekday == "All" || weekday == "Finished"){
+        if(weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)){
            return 30
         }else{
             return 0
@@ -535,7 +601,7 @@ extension ViewController: UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if(weekday != "All" && weekday != "Finished"){
+        if(weekday != "All" && weekday != "Finished" && !tagIdMap.keys.contains(weekday)){
             return UIView()
         }
         let headerView = UIView()
@@ -562,7 +628,7 @@ extension ViewController: UITableViewDataSource{
         //return tasks.count
         //let weekday = weekdaysOrder[section]
        // return groupedTasks[weekday]?.count ?? 0
-        if weekday == "All" || weekday == "Finished" {
+        if weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday) {
             //let keys = Array(groupedTasks.keys).sorted { weekdaysOrder.firstIndex(of: $0) ?? Int.max < weekdaysOrder.firstIndex(of: $1) ?? Int.max }
             //return groupedTasks[keys[section]]?.count ?? 0
             let weekday = weekdaysOrder[section]
@@ -582,8 +648,8 @@ extension ViewController: UITableViewDataSource{
         
         print("Source index section is \(sourceIndexPath.section)")
         //let day = groupedTasks.keys.sorted()[sourceIndexPath.section]
-        let day = (self.weekday == "All" || weekday == "Finished") ? self.weekdaysOrder[sourceIndexPath.section] : self.weekday
-        let destDay = (self.weekday == "All" || weekday == "Finished") ? self.weekdaysOrder[destinationIndexPath.section] : self.weekday
+        let day = (self.weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)) ? self.weekdaysOrder[sourceIndexPath.section] : self.weekday
+        let destDay = (self.weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)) ? self.weekdaysOrder[destinationIndexPath.section] : self.weekday
         
         //let dayID = getIdForWeekday(name: day)
         //let destDayID = getIdForWeekday(name: destDay)
@@ -659,7 +725,7 @@ extension ViewController: UITableViewDataSource{
         
         var task: Task?
 
-        if weekday == "All" || weekday == "Finished" {
+        if (weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)){
             let thisWeekday = weekdaysOrder[indexPath.section]
             task = groupedTasks[thisWeekday]?[indexPath.row]
         } else {
@@ -691,7 +757,7 @@ extension ViewController: UITableViewDataSource{
                 cell.imageView?.image = UIImage(systemName: "burst.fill")
                 cell.imageView?.tintColor = UIColor(named: "white")
             }else if(tag == "Chore"){
-                cell.imageView?.image = UIImage(systemName: "hammer.fill")
+                cell.imageView?.image = UIImage(systemName: "house.fill")
                 cell.imageView?.tintColor = UIColor(named: "white")
             }
         } else {
