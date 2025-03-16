@@ -19,6 +19,7 @@ class TaskViewController: UIViewController {
     var taskIndex: Int?
     var taskID: Int?
     var taskDescription: String?
+    var taskFinished: Bool = false
     var update: (() -> Void)?
     
     var weekdayID: Int = 0
@@ -52,6 +53,13 @@ class TaskViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if(taskFinished){ //if task is finished do not allow editing
+            titleField.isEnabled = false
+            descField.isEditable = false
+            button.isEnabled = false
+            tagButton.isEnabled = false
+        }
         
         //configure weekdays button
         for weekday in weekdays{
@@ -90,7 +98,12 @@ class TaskViewController: UIViewController {
         descField.text = taskDescription
         self.title = "Task Details"
         
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done Task", style: .done, target: self, action: #selector(doneTask))
+        if(!taskFinished){
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done Task", style: .done, target: self, action: #selector(doneTask))
+        }else{
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Put Back", style: .done, target: self, action: #selector(notDoneTask))
+            
+        }
         
         // Do any additional setup after loading the view.
     }
@@ -205,6 +218,35 @@ class TaskViewController: UIViewController {
         }
     }
     
+    @objc func notDoneTask(){
+        //this function sets the finished boolean to true
+        guard let taskIDDB = taskID else {
+            print("task index is nil")
+            return
+        }
+        
+        print("TASK ID in DB RECEIVED IS   ", taskIDDB)
+        
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        if (dailyDoDB.open()) {
+            let updateSQL = "UPDATE Tasks SET finished = false WHERE id = '\(taskIDDB)'"
+            let result = dailyDoDB.executeUpdate(updateSQL, withArgumentsIn: [])
+            if !result {
+                
+                print("Error: \(dailyDoDB.lastErrorMessage())")
+                
+            } else {
+                print("Done task with ID: \(taskIDDB)")
+                update?()
+                
+                navigationController?.popViewController(animated: true)
+                
+            }
+            dailyDoDB.close()
+        } else {
+            print("Error: \(dailyDoDB.lastErrorMessage())")
+        }
+    }
     
     @objc func updateTask(){
         //save contents of the field

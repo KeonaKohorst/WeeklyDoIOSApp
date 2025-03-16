@@ -7,8 +7,16 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
     let weekdays: [String] = ["All", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Finished"]
     let tags: [String] = ["School", "Work", "Fun", "Event", "Chore"]
     
+    var databasePath = String()
+    var currentDay: String = ""
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        //get the current day
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "EEEE"
+        currentDay = dateFormatter.string(from: Date())
         
         // Set delegates
         tableView.dataSource = self
@@ -19,7 +27,62 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
         
         // Reload table view to reflect data
         tableView.reloadData()
-    }
+        
+        //set up database
+        let filemgr = FileManager.default
+        let dirPaths = filemgr.urls(for: .documentDirectory, in: .userDomainMask)
+        
+        databasePath = dirPaths[0].appendingPathComponent("dailydo.db").path
+        
+        if !filemgr.fileExists(atPath: databasePath as String) { //this only runs if there is not already a db file
+           let dailyDoDB = FMDatabase(path: databasePath as String)
+        
+        
+            if (dailyDoDB.open()) {
+                print("OPENED DB")
+                
+                let sql_stmt = """
+                            CREATE TABLE IF NOT EXISTS Tasks (
+                                id INTEGER PRIMARY KEY NOT NULL,
+                                taskString TEXT,
+                                description TEXT,
+                                indexInList INTEGER,
+                                weekday INTEGER,
+                                finished BOOLEAN DEFAULT 0,
+                                oneTimeTask BOOLEAN DEFAULT 0,
+                                tag INTEGER,
+                                date TEXT,
+                                FOREIGN KEY (tag) REFERENCES Tags (id),
+                                FOREIGN KEY (weekday) REFERENCES Weekdays (id)
+                            );
+
+                            CREATE TABLE IF NOT EXISTS Tags (
+                                id INTEGER PRIMARY KEY NOT NULL,
+                                tag TEXT
+                            );
+
+                            CREATE TABLE IF NOT EXISTS Weekdays (
+                                id INTEGER PRIMARY KEY NOT NULL,
+                                name TEXT
+                            );
+                            
+                            
+
+                            """
+                
+                    if !(dailyDoDB.executeStatements(sql_stmt)) {
+                        print("Error: \(dailyDoDB.lastErrorMessage())")
+                    }
+                
+                    //fill the weekdays and tags tables
+                    populateDB()
+
+                    dailyDoDB.close()
+            
+        } else {
+            print("Error: \(dailyDoDB.lastErrorMessage())") }
+            print("COULD NOT OPEN DB")
+        }    }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return 30
@@ -77,7 +140,12 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
             if indexPath.row == 0 {
                 cell.imageView?.image = UIImage(systemName: "staroflife.fill")
             } else if indexPath.row < 8 {
-                cell.imageView?.image = UIImage(systemName: "doc.plaintext")
+                if(text == currentDay){
+                    print("Current day is  \(currentDay)")
+                    cell.imageView?.image = UIImage(systemName: "mappin.and.ellipse")
+                }else{
+                    cell.imageView?.image = UIImage(systemName: "doc.plaintext")
+                }
             } else {
                 cell.imageView?.image = UIImage(systemName: "checkmark.circle.fill")
             }
@@ -114,5 +182,113 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
         vc.weekday = selectedCategory
         print("Sending weekday/category \(selectedCategory)")
         navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func getProgressPercentage() -> Int {
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        
+        if (dailyDoDB.open()) {
+            let id = getIdForWeekday(name: currentDay)
+            var totalTasksForDay = 0
+            var totalFinishedTasksForDay = 0
+            
+            var getSQL = "SELECT COUNT(*) AS count FROM Tasks WHERE weekday = '\(id)'"
+            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
+                if result.next() { // move to the first row with .next()
+                    totalTasksForDay = Int(result.int(forColumn: "count"))
+                    
+                    
+                } else {
+                    print("Get progress percentage: No tasks for weekday \(currentDay)")
+                }
+            } else {
+                print("Failed to fetch total tasks for day: \(dailyDoDB.lastErrorMessage())")
+            }
+            
+            getSQL = "SELECT COUNT(*) AS count FROM Tasks WHERE weekday = '\(id)' AND finished = true"
+            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
+                if result.next() { // move to the first row with .next()
+                    totalFinishedTasksForDay = Int(result.int(forColumn: "count"))
+                    
+                    
+                } else {
+                    print("Get progress percentage: No FINISHED tasks for weekday \(currentDay)")
+                }
+            } else {
+                print("Failed to fetch total finished tasks for day: \(dailyDoDB.lastErrorMessage())")
+            }
+            
+            if(totalTasksForDay != 0){
+                let percentage = totalFinishedTasksForDay / totalTasksForDay * 100
+                print("Percentage for \(currentDay) is \(percentage)")
+                
+                
+                return percentage
+            }else{
+                return 100
+            }
+            
+        }else{
+            print("Failed to open DB")
+            
+        }
+        return 100
+    }
+    
+    func getIdForWeekday(name: String) -> Int {
+        // Get weekday from the ID
+        //print("Get weekday by id: \(id)")
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        
+        if (dailyDoDB.open()) {
+            let getSQL = "SELECT id FROM Weekdays WHERE name = '\(name)'"
+            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
+                if result.next() { // move to the first row with .next()
+                    let weekdayID = Int(result.int(forColumn: "id"))
+                    
+                    return weekdayID
+                } else {
+                    print("Getid for weekday function: No matching weekday id found for name \(name)")
+                }
+            } else {
+                print("Failed to fetch id by weekday: \(dailyDoDB.lastErrorMessage())")
+            }
+        }else{
+            print("Failed to open DB")
+            
+        }
+        return 0
+        
+    }
+    
+    @objc func populateDB(){
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        
+        if dailyDoDB.open() {
+            print("OPENED DB")
+
+            // Insert Tags
+            let tags = ["Work", "School", "Misc", "Recreational", "Time sensitive", "High priority", "Low priority"]
+            for tag in tags {
+                let insertTagSQL = "INSERT INTO Tags (tag) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM Tags WHERE tag = ?);"
+                if !dailyDoDB.executeUpdate(insertTagSQL, withArgumentsIn: [tag, tag]) {
+                    print("Error inserting tag \(tag): \(dailyDoDB.lastErrorMessage())")
+                }
+            }
+
+            // Insert Weekdays
+            let weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+            for day in weekdays {
+                let insertDaySQL = "INSERT INTO Weekdays (name) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM Weekdays WHERE name = ?);"
+                if !dailyDoDB.executeUpdate(insertDaySQL, withArgumentsIn: [day, day]) {
+                    print("Error inserting weekday \(day): \(dailyDoDB.lastErrorMessage())")
+                }
+            }
+
+            print("Inserted weekdays and tags successfully")
+            dailyDoDB.close()
+        } else {
+            print("Error opening database: \(dailyDoDB.lastErrorMessage())")
+        }
     }
 }

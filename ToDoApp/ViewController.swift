@@ -63,10 +63,12 @@ class ViewController: UIViewController {
         "Chore": 5
     ]
     
+    
+    
     var databasePath = String()
     @IBOutlet weak var plainTableView: UITableView!
     @IBOutlet weak var noneLabel: UILabel!
-  
+    @IBOutlet weak var sortButton: UIBarButtonItem!
     
     @IBAction func didTapAdd(){
         let vc = storyboard?.instantiateViewController(identifier: "entry") as! EntryViewController
@@ -86,8 +88,10 @@ class ViewController: UIViewController {
     @IBAction func didTapSort(){
         if plainTableView.isEditing{
             plainTableView.isEditing = false
+            sortButton.title = "Sort"
         }else{
             plainTableView.isEditing = true
+            sortButton.title = "Stop"
         }
     }
     
@@ -365,7 +369,10 @@ class ViewController: UIViewController {
         plainTableView.delegate = self
         plainTableView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
         
-       
+        //hide sort button if coming from a tag or finished view 
+        if(weekday == "Finished" || isTag(tag: weekday)){
+            sortButton.isHidden = true
+        }
       
         
         //set up database
@@ -374,55 +381,55 @@ class ViewController: UIViewController {
         
         databasePath = dirPaths[0].appendingPathComponent("dailydo.db").path
         
-        if !filemgr.fileExists(atPath: databasePath as String) { //this only runs if there is not already a db file
-           let dailyDoDB = FMDatabase(path: databasePath as String)
-        
-        
-            if (dailyDoDB.open()) {
-                print("OPENED DB")
-                
-                let sql_stmt = """
-                            CREATE TABLE IF NOT EXISTS Tasks (
-                                id INTEGER PRIMARY KEY NOT NULL,
-                                taskString TEXT,
-                                description TEXT,
-                                indexInList INTEGER,
-                                weekday INTEGER,
-                                finished BOOLEAN DEFAULT 0,
-                                oneTimeTask BOOLEAN DEFAULT 0,
-                                tag INTEGER,
-                                date TEXT,
-                                FOREIGN KEY (tag) REFERENCES Tags (id),
-                                FOREIGN KEY (weekday) REFERENCES Weekdays (id)
-                            );
-
-                            CREATE TABLE IF NOT EXISTS Tags (
-                                id INTEGER PRIMARY KEY NOT NULL,
-                                tag TEXT
-                            );
-
-                            CREATE TABLE IF NOT EXISTS Weekdays (
-                                id INTEGER PRIMARY KEY NOT NULL,
-                                name TEXT
-                            );
-                            
-                            
-
-                            """
-                
-                    if !(dailyDoDB.executeStatements(sql_stmt)) {
-                        print("Error: \(dailyDoDB.lastErrorMessage())")
-                    }
-                
-                    //fill the weekdays and tags tables
-                    populateDB()
-
-                    dailyDoDB.close()
-            
-        } else {
-            print("Error: \(dailyDoDB.lastErrorMessage())") }
-            print("COULD NOT OPEN DB")
-        }
+//        if !filemgr.fileExists(atPath: databasePath as String) { //this only runs if there is not already a db file
+//           let dailyDoDB = FMDatabase(path: databasePath as String)
+//
+//
+//            if (dailyDoDB.open()) {
+//                print("OPENED DB")
+//
+//                let sql_stmt = """
+//                            CREATE TABLE IF NOT EXISTS Tasks (
+//                                id INTEGER PRIMARY KEY NOT NULL,
+//                                taskString TEXT,
+//                                description TEXT,
+//                                indexInList INTEGER,
+//                                weekday INTEGER,
+//                                finished BOOLEAN DEFAULT 0,
+//                                oneTimeTask BOOLEAN DEFAULT 0,
+//                                tag INTEGER,
+//                                date TEXT,
+//                                FOREIGN KEY (tag) REFERENCES Tags (id),
+//                                FOREIGN KEY (weekday) REFERENCES Weekdays (id)
+//                            );
+//
+//                            CREATE TABLE IF NOT EXISTS Tags (
+//                                id INTEGER PRIMARY KEY NOT NULL,
+//                                tag TEXT
+//                            );
+//
+//                            CREATE TABLE IF NOT EXISTS Weekdays (
+//                                id INTEGER PRIMARY KEY NOT NULL,
+//                                name TEXT
+//                            );
+//
+//
+//
+//                            """
+//
+//                    if !(dailyDoDB.executeStatements(sql_stmt)) {
+//                        print("Error: \(dailyDoDB.lastErrorMessage())")
+//                    }
+//
+//                    //fill the weekdays and tags tables
+//                    populateDB()
+//
+//                    dailyDoDB.close()
+//
+//        } else {
+//            print("Error: \(dailyDoDB.lastErrorMessage())") }
+//            print("COULD NOT OPEN DB")
+//        }
         
        
         
@@ -432,36 +439,36 @@ class ViewController: UIViewController {
         
     }
     
-    @objc func populateDB(){
-        let dailyDoDB = FMDatabase(path: databasePath as String)
-        
-        if dailyDoDB.open() {
-            print("OPENED DB")
-
-            // Insert Tags
-            let tags = ["Work", "School", "Misc", "Recreational", "Time sensitive", "High priority", "Low priority"]
-            for tag in tags {
-                let insertTagSQL = "INSERT INTO Tags (tag) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM Tags WHERE tag = ?);"
-                if !dailyDoDB.executeUpdate(insertTagSQL, withArgumentsIn: [tag, tag]) {
-                    print("Error inserting tag \(tag): \(dailyDoDB.lastErrorMessage())")
-                }
-            }
-
-            // Insert Weekdays
-            let weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-            for day in weekdays {
-                let insertDaySQL = "INSERT INTO Weekdays (name) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM Weekdays WHERE name = ?);"
-                if !dailyDoDB.executeUpdate(insertDaySQL, withArgumentsIn: [day, day]) {
-                    print("Error inserting weekday \(day): \(dailyDoDB.lastErrorMessage())")
-                }
-            }
-
-            print("Inserted weekdays and tags successfully")
-            dailyDoDB.close()
-        } else {
-            print("Error opening database: \(dailyDoDB.lastErrorMessage())")
-        }
-    }
+//    @objc func populateDB(){
+//        let dailyDoDB = FMDatabase(path: databasePath as String)
+//
+//        if dailyDoDB.open() {
+//            print("OPENED DB")
+//
+//            // Insert Tags
+//            let tags = ["Work", "School", "Misc", "Recreational", "Time sensitive", "High priority", "Low priority"]
+//            for tag in tags {
+//                let insertTagSQL = "INSERT INTO Tags (tag) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM Tags WHERE tag = ?);"
+//                if !dailyDoDB.executeUpdate(insertTagSQL, withArgumentsIn: [tag, tag]) {
+//                    print("Error inserting tag \(tag): \(dailyDoDB.lastErrorMessage())")
+//                }
+//            }
+//
+//            // Insert Weekdays
+//            let weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+//            for day in weekdays {
+//                let insertDaySQL = "INSERT INTO Weekdays (name) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM Weekdays WHERE name = ?);"
+//                if !dailyDoDB.executeUpdate(insertDaySQL, withArgumentsIn: [day, day]) {
+//                    print("Error inserting weekday \(day): \(dailyDoDB.lastErrorMessage())")
+//                }
+//            }
+//
+//            print("Inserted weekdays and tags successfully")
+//            dailyDoDB.close()
+//        } else {
+//            print("Error opening database: \(dailyDoDB.lastErrorMessage())")
+//        }
+//    }
 
     @objc func deleteTask(taskIDDB: Int){
         print("TASK index RECEIVED IS   ", taskIDDB)
@@ -492,6 +499,7 @@ extension ViewController: UITableViewDelegate{
         tableView.deselectRow(at: indexPath, animated: true)
         
         var thisWeekday = "unknown"
+        var finishedTask = false
         var selectedTask: Task? = nil
         if tagIdMap.keys.contains(weekday){
             // User selected from the tag view
@@ -501,7 +509,30 @@ extension ViewController: UITableViewDelegate{
             if indexPath.row < matchingTasks.count{
                 selectedTask = matchingTasks[indexPath.row]
             }
+        
+        }else if(weekday == "Finished"){
+            var day = self.weekdaysOrder[indexPath.section]
+            let tasksForDay = self.groupedTasks[day] //holds all tasks for the day of the section
+            
+            //get the title and descrption from the selected cell
+            if let cell = tableView.cellForRow(at: indexPath) {
+                let taskTitle = cell.textLabel?.text ?? ""
+                let taskDesc = cell.detailTextLabel?.text ?? ""
+                print("Task title to delete is: \(taskTitle)")
+                
+                //search through groupedTasks to get the task object based on title and description
+                if let foundTask = tasksForDay!.first(where: {$0.taskString == taskTitle && $0.description == taskDesc}){
+                    selectedTask = foundTask
+                    finishedTask = true
+                }else{
+                    print("Couldn't find a task with title \(taskTitle) and desc \(taskDesc)")
+                }
+            }else{
+                print("Error getting cell")
+            }
+            
         }else{
+            //the task is a weekday/general selection
             thisWeekday = "General"
             if(weekday == "All"){
                 thisWeekday = weekdaysOrder[indexPath.section]
@@ -534,6 +565,7 @@ extension ViewController: UITableViewDelegate{
         vc.taskIndex = indexPath.row
         vc.weekday = task.weekday
         vc.tagID = task.tag
+        vc.taskFinished = finishedTask
         vc.weekdayID = getIdForWeekday(name: weekday)
         vc.update = {
             DispatchQueue.main.async{ //make sure we prioritize updating the actual tasks
@@ -549,24 +581,68 @@ extension ViewController: UITableViewDelegate{
     func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
             let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (_, _, completionHandler) in
  
-                let day = (self.weekday == "All") ? self.weekdaysOrder[indexPath.section] : self.weekday
-                if let tasks = self.groupedTasks[day]{
-                    let task = tasks[indexPath.row]
-                    let id = task.id
-                    //let idToRemove = self.ids[indexPath.row]
-
-                    // Delete from the database
-                    self.deleteTask(taskIDDB: id)
-
-                    completionHandler(true) // Mark the action as completed
+                
+                if(self.weekday == "All" || self.isWeekday(day: self.weekday)){
+                    var day = (self.weekday == "All") ? self.weekdaysOrder[indexPath.section] : self.weekday
                     
+                    //get the task for the weekday or for all and delete
+                    if let tasks = self.groupedTasks[day]{
+                        let task = tasks[indexPath.row]
+                        let id = task.id
+                        //let idToRemove = self.ids[indexPath.row]
+
+                        // Delete from the database
+                        self.deleteTask(taskIDDB: id)
+
+                        completionHandler(true) // Mark the action as completed
+                        
+                    }
+                    
+                }else{
+                    //if the category is the finished filter or a tag filter we need to look for the specific task bc row index will not be reliable
+                    var day = self.weekdaysOrder[indexPath.section]
+                    let tasksForDay = self.groupedTasks[day] //holds all tasks for the day of the section
+                    
+                    //get the title and descrption from the selected cell
+                    if let cell = tableView.cellForRow(at: indexPath) {
+                        let taskTitle = cell.textLabel?.text ?? ""
+                        let taskDesc = cell.detailTextLabel?.text ?? ""
+                        print("Task title to delete is: \(taskTitle)")
+                        
+                        //search through groupedTasks to get the task object based on title and description
+                        if let foundTask = tasksForDay!.first(where: {$0.taskString == taskTitle && $0.description == taskDesc}){
+                            //delete the match that was found
+                            let id = foundTask.id
+                            self.deleteTask(taskIDDB: id)
+                        }else{
+                            print("Couldn't find a task with title \(taskTitle) and desc \(taskDesc)")
+                        }
+                    }else{
+                        print("Error getting cell")
+                    }
                 }
+//                }else if(self.isTag(tag: self.weekday)){
+//                    //if the category is a tag filter
+//
+//
+//                }
+                
+                
+                
                 
             }
             
             return UISwipeActionsConfiguration(actions: [deleteAction])
     }
     
+    func isTag(tag: String) -> Bool {
+        return tagIdMap.keys.contains(tag)
+        
+    }
+    
+    func isWeekday(day: String) -> Bool {
+        return weekdaysOrder.contains(day)
+    }
     
 }
 
@@ -742,7 +818,7 @@ extension ViewController: UITableViewDataSource{
                 cell.imageView?.tintColor = UIColor(named: "white")
                 
             }else if(tag == "None"){
-                cell.imageView?.image = UIImage(systemName: "rectangle")
+                cell.imageView?.image = UIImage(systemName: "globe")
                 cell.imageView?.tintColor = UIColor(named: "white")
                 
             }else if(tag == "Work"){
@@ -769,5 +845,7 @@ extension ViewController: UITableViewDataSource{
 
         
     }
+    
+    
 }
 

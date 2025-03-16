@@ -86,6 +86,7 @@
                     <connections>
                         <outlet property="noneLabel" destination="Lzt-tn-m0D" id="qQU-QV-fk8"/>
                         <outlet property="plainTableView" destination="2IX-Oc-W1S" id="ADC-oO-6mB"/>
+                        <outlet property="sortButton" destination="ooh-mG-clF" id="Fxp-xC-FVL"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
