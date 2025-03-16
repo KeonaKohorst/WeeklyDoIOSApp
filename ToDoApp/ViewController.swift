@@ -164,22 +164,22 @@ class ViewController: UIViewController {
     
     
     func updateTasks(){
-        print("ENTERING UPDATE TASKS IN VIEW CONTROLLER")
+        //print("ENTERING UPDATE TASKS IN VIEW CONTROLLER")
         //get tasks from the DB
         if(weekday == "All"){
             getAllUnfinishedTasks()
-            printGroupedTasks(groupedTasks)
+            //printGroupedTasks(groupedTasks)
         }else if(weekday == "Finished"){
-            print("Category is finished tasks")
+            //print("Category is finished tasks")
             getAllFinishedTasks()
-            printGroupedTasks(groupedTasks)
+            //printGroupedTasks(groupedTasks)
         }else if(tagIdMap.keys.contains(weekday)){
             getAllUnfinishedTasksByTag(tag: weekday)
-            printGroupedTasks(groupedTasks)
+            //printGroupedTasks(groupedTasks)
         }else{
-            print("Getting all unfinished tasks for weekday \(weekday)")
+            //print("Getting all unfinished tasks for weekday \(weekday)")
             getAllUnfinishedTasksForWeekday()
-            printGroupedTasks(groupedTasks)
+            //printGroupedTasks(groupedTasks)
         }
         
         
@@ -314,7 +314,7 @@ class ViewController: UIViewController {
     }
 
     @IBAction func getAllFinishedTasks(){
-        print("GETTING FINISHED TASKS")
+        //print("GETTING FINISHED TASKS")
         groupedTasks.removeAll()
         
         let dailyDoDB = FMDatabase(path: databasePath as String)
@@ -339,7 +339,7 @@ class ViewController: UIViewController {
                     let indexInList = Int(results.int(forColumn: "indexInList"))
                     
                     let task = Task(weekday: weekday, taskString: taskString, description: desc, indexInList: indexInList, id: taskID, tag: tagID)
-                    print("Task in all finished tasks is \(task)")
+                    //print("Task in all finished tasks is \(task)")
                     
                     if groupedTasks[weekday] == nil {
                         groupedTasks[weekday] = []
@@ -347,7 +347,7 @@ class ViewController: UIViewController {
                     groupedTasks[weekday]?.append(task)
                     
                 }
-                print("Done while loop through results")
+                //print("Done while loop through results")
                 
             } else {
                 print("No records found.")
@@ -380,7 +380,8 @@ class ViewController: UIViewController {
         let dirPaths = filemgr.urls(for: .documentDirectory, in: .userDomainMask)
         
         databasePath = dirPaths[0].appendingPathComponent("dailydo.db").path
-        
+        print("Database path: \(databasePath)")
+
 //        if !filemgr.fileExists(atPath: databasePath as String) { //this only runs if there is not already a db file
 //           let dailyDoDB = FMDatabase(path: databasePath as String)
 //
@@ -471,7 +472,7 @@ class ViewController: UIViewController {
 //    }
 
     @objc func deleteTask(taskIDDB: Int){
-        print("TASK index RECEIVED IS   ", taskIDDB)
+        //print("TASK index RECEIVED IS   ", taskIDDB)
 
         let dailyDoDB = FMDatabase(path: databasePath as String)
         if (dailyDoDB.open()) {
@@ -572,8 +573,8 @@ extension ViewController: UITableViewDelegate{
                 self.updateTasks()
             }
         }
-        print("task ID for the array being sent is: ", indexPath.row)
-        print("task description being sent is: ", task.description)
+        //print("task ID for the array being sent is: ", indexPath.row)
+        //print("task description being sent is: ", task.description)
         navigationController?.pushViewController(vc, animated: true)
         
     }
@@ -652,10 +653,10 @@ extension ViewController: UITableViewDataSource{
         
         //return groupedTasks.keys.count
         if(weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)){
-            print("Number of sections in table view is 8")
+            //print("Number of sections in table view is 8")
             return 8
         }else{
-            print("Number of sections in table view is 1")
+            //print("Number of sections in table view is 1")
             return 1
         }
     }
@@ -722,7 +723,7 @@ extension ViewController: UITableViewDataSource{
     
     func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         
-        print("Source index section is \(sourceIndexPath.section)")
+        //print("Source index section is \(sourceIndexPath.section)")
         //let day = groupedTasks.keys.sorted()[sourceIndexPath.section]
         let day = (self.weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)) ? self.weekdaysOrder[sourceIndexPath.section] : self.weekday
         let destDay = (self.weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)) ? self.weekdaysOrder[destinationIndexPath.section] : self.weekday
@@ -732,11 +733,11 @@ extension ViewController: UITableViewDataSource{
         
         if var tasks = groupedTasks[day]{
             let sourceTask = tasks[sourceIndexPath.row]
-            print("Source task is \(sourceTask) at row \(sourceIndexPath.row) and day \(day)")
+            //print("Source task is \(sourceTask) at row \(sourceIndexPath.row) and day \(day)")
           
             
             let destinationTask = tasks[destinationIndexPath.row]
-            print("Destination task is \(destinationTask) at row \(destinationIndexPath.row) and day \(destDay)")
+            //print("Destination task is \(destinationTask) at row \(destinationIndexPath.row) and day \(destDay)")
             
             //make changes in the db
             let dailyDoDB = FMDatabase(path: databasePath as String)

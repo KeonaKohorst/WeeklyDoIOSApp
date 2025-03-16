@@ -10,6 +10,9 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
     var databasePath = String()
     var currentDay: String = ""
     
+    @IBOutlet weak var progressView: UIProgressView!
+    
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -33,8 +36,10 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
         let dirPaths = filemgr.urls(for: .documentDirectory, in: .userDomainMask)
         
         databasePath = dirPaths[0].appendingPathComponent("dailydo.db").path
+        //print("Filter view controller db path in view did load is \(databasePath)")
         
         if !filemgr.fileExists(atPath: databasePath as String) { //this only runs if there is not already a db file
+           print("CREATING THE DB FOR THE FIRST TIME")
            let dailyDoDB = FMDatabase(path: databasePath as String)
         
         
@@ -82,7 +87,24 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
         } else {
             print("Error: \(dailyDoDB.lastErrorMessage())") }
             print("COULD NOT OPEN DB")
-        }    }
+        }
+        
+        //get the current days progress
+        var percentage = getProgressPercentage()
+        percentage = Float(percentage / 100)
+        progressView.progress = Float(percentage)
+        
+        print("VIEW DID LOAD OVER")
+    }
+    
+    override func viewWillAppear(_ animated: Bool){
+        super.viewWillAppear(animated)
+        //get the current days progress
+        var percentage = getProgressPercentage()
+        percentage = Float(percentage / 100)
+        progressView.progress = Float(percentage)
+        
+    }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         return 30
@@ -175,7 +197,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
         
         let selectedCategory = indexPath.section == 0 ? weekdays[indexPath.row] : tags[indexPath.row]
         
-        print("Row selected is \(indexPath.row) in section \(indexPath.section)")
+        //print("Row selected is \(indexPath.row) in section \(indexPath.section)")
         vc.title = "To Do"
         
         
@@ -184,7 +206,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
         navigationController?.pushViewController(vc, animated: true)
     }
     
-    func getProgressPercentage() -> Int {
+    func getProgressPercentage() -> Float {
         let dailyDoDB = FMDatabase(path: databasePath as String)
         
         if (dailyDoDB.open()) {
@@ -218,29 +240,34 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
                 print("Failed to fetch total finished tasks for day: \(dailyDoDB.lastErrorMessage())")
             }
             
+            print("Total tasks for \(currentDay) is \(totalTasksForDay)")
+            print("Total FINISHED tasks for \(currentDay) is \(totalFinishedTasksForDay)")
+            
             if(totalTasksForDay != 0){
-                let percentage = totalFinishedTasksForDay / totalTasksForDay * 100
+                let percentage = Float((Float(totalFinishedTasksForDay) / Float(totalTasksForDay)) * 100)
                 print("Percentage for \(currentDay) is \(percentage)")
                 
                 
                 return percentage
             }else{
-                return 100
+                return 100.0
             }
             
         }else{
             print("Failed to open DB")
             
         }
-        return 100
+        return 100.0
     }
     
     func getIdForWeekday(name: String) -> Int {
         // Get weekday from the ID
         //print("Get weekday by id: \(id)")
         let dailyDoDB = FMDatabase(path: databasePath as String)
-        
+        //print("Database path: \(databasePath)")
+
         if (dailyDoDB.open()) {
+            print("OPENED DB")
             let getSQL = "SELECT id FROM Weekdays WHERE name = '\(name)'"
             if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
                 if result.next() { // move to the first row with .next()

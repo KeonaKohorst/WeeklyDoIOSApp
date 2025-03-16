@@ -146,7 +146,7 @@ class TaskViewController: UIViewController {
 
         if self.isMovingFromParent {
             //save the changes the user made to the existing task
-            print("UPDATING TASK!")
+            //print("UPDATING TASK!")
             weekday = button.titleLabel!.text!
             
             updateTask()
@@ -161,7 +161,7 @@ class TaskViewController: UIViewController {
             return
         }
         
-        print("TASK index RECEIVED IS   ", taskIDDB)
+        //print("TASK index RECEIVED IS   ", taskIDDB)
         
         
         
@@ -195,7 +195,7 @@ class TaskViewController: UIViewController {
             return
         }
         
-        print("TASK ID in DB RECEIVED IS   ", taskIDDB)
+        //print("TASK ID in DB RECEIVED IS   ", taskIDDB)
         
         let dailyDoDB = FMDatabase(path: databasePath as String)
         if (dailyDoDB.open()) {
@@ -225,7 +225,7 @@ class TaskViewController: UIViewController {
             return
         }
         
-        print("TASK ID in DB RECEIVED IS   ", taskIDDB)
+        //print("TASK ID in DB RECEIVED IS   ", taskIDDB)
         
         let dailyDoDB = FMDatabase(path: databasePath as String)
         if (dailyDoDB.open()) {
@@ -253,7 +253,7 @@ class TaskViewController: UIViewController {
         guard let text = titleField.text, !text.isEmpty else {
             return
         }
-        print("UPDATING TASK ", text)
+        //print("UPDATING TASK ", text)
         //save task cuz not empty
         if let task = titleField.text, !task.isEmpty {
             
@@ -281,7 +281,7 @@ class TaskViewController: UIViewController {
                     // Get the last inserted row ID
                     let lastInsertedID = Int(dailyDoDB.lastInsertRowId)
                     
-                    print("Task UPDATED: \(task) with ID: \(lastInsertedID) and description \(desc)")
+                    //print("Task UPDATED: \(task) with ID: \(lastInsertedID) and description \(desc)")
                     
                     
                     update?()
@@ -296,5 +296,15 @@ class TaskViewController: UIViewController {
         
         
         
+    }
+    
+    @IBAction func textFieldDoneEditing(sender: UITextField){
+        
+        sender.resignFirstResponder()
+    }
+    
+    @IBAction func onTapGestureRecognized1(_ sender: AnyObject){
+        titleField.resignFirstResponder()
+        descField.resignFirstResponder()
     }
 }

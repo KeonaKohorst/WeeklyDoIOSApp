@@ -288,5 +288,13 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
         }
     }
 
-
+    @IBAction func textFieldDoneEditing(sender: UITextField){
+        
+        sender.resignFirstResponder()
+    }
+    
+    @IBAction func onTapGestureRecognized1(_ sender: AnyObject){
+        field.resignFirstResponder()
+        descField.resignFirstResponder()
+    }
 }
