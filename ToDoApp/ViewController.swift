@@ -381,95 +381,12 @@ class ViewController: UIViewController {
         
         databasePath = dirPaths[0].appendingPathComponent("dailydo.db").path
         print("Database path: \(databasePath)")
-
-//        if !filemgr.fileExists(atPath: databasePath as String) { //this only runs if there is not already a db file
-//           let dailyDoDB = FMDatabase(path: databasePath as String)
-//
-//
-//            if (dailyDoDB.open()) {
-//                print("OPENED DB")
-//
-//                let sql_stmt = """
-//                            CREATE TABLE IF NOT EXISTS Tasks (
-//                                id INTEGER PRIMARY KEY NOT NULL,
-//                                taskString TEXT,
-//                                description TEXT,
-//                                indexInList INTEGER,
-//                                weekday INTEGER,
-//                                finished BOOLEAN DEFAULT 0,
-//                                oneTimeTask BOOLEAN DEFAULT 0,
-//                                tag INTEGER,
-//                                date TEXT,
-//                                FOREIGN KEY (tag) REFERENCES Tags (id),
-//                                FOREIGN KEY (weekday) REFERENCES Weekdays (id)
-//                            );
-//
-//                            CREATE TABLE IF NOT EXISTS Tags (
-//                                id INTEGER PRIMARY KEY NOT NULL,
-//                                tag TEXT
-//                            );
-//
-//                            CREATE TABLE IF NOT EXISTS Weekdays (
-//                                id INTEGER PRIMARY KEY NOT NULL,
-//                                name TEXT
-//                            );
-//
-//
-//
-//                            """
-//
-//                    if !(dailyDoDB.executeStatements(sql_stmt)) {
-//                        print("Error: \(dailyDoDB.lastErrorMessage())")
-//                    }
-//
-//                    //fill the weekdays and tags tables
-//                    populateDB()
-//
-//                    dailyDoDB.close()
-//
-//        } else {
-//            print("Error: \(dailyDoDB.lastErrorMessage())") }
-//            print("COULD NOT OPEN DB")
-//        }
-        
-       
-        
         
         // retrieve the saved tasks that currently exist
         updateTasks()
         
     }
     
-//    @objc func populateDB(){
-//        let dailyDoDB = FMDatabase(path: databasePath as String)
-//
-//        if dailyDoDB.open() {
-//            print("OPENED DB")
-//
-//            // Insert Tags
-//            let tags = ["Work", "School", "Misc", "Recreational", "Time sensitive", "High priority", "Low priority"]
-//            for tag in tags {
-//                let insertTagSQL = "INSERT INTO Tags (tag) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM Tags WHERE tag = ?);"
-//                if !dailyDoDB.executeUpdate(insertTagSQL, withArgumentsIn: [tag, tag]) {
-//                    print("Error inserting tag \(tag): \(dailyDoDB.lastErrorMessage())")
-//                }
-//            }
-//
-//            // Insert Weekdays
-//            let weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-//            for day in weekdays {
-//                let insertDaySQL = "INSERT INTO Weekdays (name) SELECT ? WHERE NOT EXISTS (SELECT 1 FROM Weekdays WHERE name = ?);"
-//                if !dailyDoDB.executeUpdate(insertDaySQL, withArgumentsIn: [day, day]) {
-//                    print("Error inserting weekday \(day): \(dailyDoDB.lastErrorMessage())")
-//                }
-//            }
-//
-//            print("Inserted weekdays and tags successfully")
-//            dailyDoDB.close()
-//        } else {
-//            print("Error opening database: \(dailyDoDB.lastErrorMessage())")
-//        }
-//    }
 
     @objc func deleteTask(taskIDDB: Int){
         //print("TASK index RECEIVED IS   ", taskIDDB)
@@ -622,15 +539,7 @@ extension ViewController: UITableViewDelegate{
                         print("Error getting cell")
                     }
                 }
-//                }else if(self.isTag(tag: self.weekday)){
-//                    //if the category is a tag filter
-//
-//
-//                }
-                
-                
-                
-                
+
             }
             
             return UISwipeActionsConfiguration(actions: [deleteAction])

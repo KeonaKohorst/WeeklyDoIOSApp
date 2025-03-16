@@ -61,6 +61,12 @@ class TaskViewController: UIViewController {
             tagButton.isEnabled = false
         }
         
+        //configure style of text view
+        descField.layer.borderColor = UIColor(named: "pink")!.cgColor
+        descField.layer.borderWidth = 1.0
+        descField.layer.cornerRadius = 5.0
+        descField.layer.masksToBounds = true
+        
         //configure weekdays button
         for weekday in weekdays{
             menuChildren.append(UIAction(title: weekday, handler: actionClosure))
@@ -72,8 +78,6 @@ class TaskViewController: UIViewController {
         if(weekday != "All" && weekday != "General"){
             //set the button title to the weekday
             button.setTitle(weekday, for: .normal)
-        }else{
-            //button.setTitle("General", for: .normal)
         }
         
         //configure tags button
@@ -281,7 +285,7 @@ class TaskViewController: UIViewController {
                     // Get the last inserted row ID
                     let lastInsertedID = Int(dailyDoDB.lastInsertRowId)
                     
-                    //print("Task UPDATED: \(task) with ID: \(lastInsertedID) and description \(desc)")
+                    print("Task UPDATED: \(task) with ID: \(lastInsertedID) and description \(desc)")
                     
                     
                     update?()

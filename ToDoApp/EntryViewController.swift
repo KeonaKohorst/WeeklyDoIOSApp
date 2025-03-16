@@ -51,6 +51,12 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
         
         printAllTables()
         printTagTable()
+        
+        //configure style of text view
+        descField.layer.borderColor = UIColor(named: "pink")!.cgColor
+        descField.layer.borderWidth = 1.0
+        descField.layer.cornerRadius = 5.0
+        descField.layer.masksToBounds = true
 
         //configure weekdays button
         for weekday in weekdays{
