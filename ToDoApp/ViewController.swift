@@ -72,9 +72,24 @@ class ViewController: UIViewController {
     
     @IBAction func didTapAdd(){
         let vc = storyboard?.instantiateViewController(identifier: "entry") as! EntryViewController
-        
         vc.title = "New Task"
-        vc.weekday = weekday
+        
+        //weekday is category, could be a tag name.
+        if(isWeekday(day: weekday) || weekday == "All"){
+            
+            
+            vc.weekday = weekday
+            
+        }else{
+            //if finished or tag
+            vc.weekday = "All"
+            if(weekday == "Finished"){
+                vc.tag = "None"
+            }else{
+                vc.tag = weekday
+            }
+        }
+        
         vc.update = {
             //when we call this function we wanna reload the table view
             //and refetch the tasks
@@ -83,6 +98,7 @@ class ViewController: UIViewController {
             }
         }
         navigationController?.pushViewController(vc, animated: true)
+        
     }
     
     @IBAction func didTapSort(){
@@ -501,7 +517,7 @@ extension ViewController: UITableViewDelegate{
  
                 
                 if(self.weekday == "All" || self.isWeekday(day: self.weekday)){
-                    var day = (self.weekday == "All") ? self.weekdaysOrder[indexPath.section] : self.weekday
+                    let day = (self.weekday == "All") ? self.weekdaysOrder[indexPath.section] : self.weekday
                     
                     //get the task for the weekday or for all and delete
                     if let tasks = self.groupedTasks[day]{
@@ -518,7 +534,7 @@ extension ViewController: UITableViewDelegate{
                     
                 }else{
                     //if the category is the finished filter or a tag filter we need to look for the specific task bc row index will not be reliable
-                    var day = self.weekdaysOrder[indexPath.section]
+                    let day = self.weekdaysOrder[indexPath.section]
                     let tasksForDay = self.groupedTasks[day] //holds all tasks for the day of the section
                     
                     //get the title and descrption from the selected cell

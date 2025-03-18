@@ -82,7 +82,7 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
         tagButton.changesSelectionAsPrimaryAction = true
         
        
-        tagButton.setTitle("None", for: .normal)
+        tagButton.setTitle(tag, for: .normal)
     
         
         //set up database connection

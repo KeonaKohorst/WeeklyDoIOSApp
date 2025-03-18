@@ -1,4 +1,5 @@
 import UIKit
+import Foundation
 
 class FilterViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     
@@ -9,6 +10,38 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
     
     var databasePath = String()
     var currentDay: String = ""
+    
+    let tagIdMap: [String: Int] = [
+        "None": 0,
+        "School": 1,
+        "Work": 2,
+        "Fun": 3,
+        "Event": 4,
+        "Chore": 5
+    ]
+    
+//    var weekdayCounts: [String: Int] = [
+//        "All": 0,
+//        "Sunday": 0,
+//        "Monday": 0,
+//        "Tuesday": 0,
+//        "Wednesday": 0,
+//        "Thursday": 0,
+//        "Friday": 0,
+//        "Saturday": 0,
+//        "Finished": 0
+//    ]
+//
+//    var tagCounts: [String: Int] = [
+//        "School": 0,
+//        "Work": 0,
+//        "Fun": 0,
+//        "Event": 0,
+//        "Chore": 0
+//    ]
+    
+    var weekdayCounts: [String: Int] = [:]
+    var tagCounts: [String: Int] = [:]
     
     @IBOutlet weak var progressView: UIProgressView!
     
@@ -26,7 +59,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
         tableView.delegate = self
         
         // Register a default UITableViewCell
-        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "DayCell")
+        //tableView.register(UITableViewCell.self, forCellReuseIdentifier: "DayCell")
         
         // Reload table view to reflect data
         tableView.reloadData()
@@ -94,6 +127,10 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
         percentage = Float(percentage / 100)
         progressView.progress = Float(percentage)
         
+
+        //update the task counts
+        updateCounts()
+        
         print("VIEW DID LOAD OVER")
     }
     
@@ -103,6 +140,9 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
         var percentage = getProgressPercentage()
         percentage = Float(percentage / 100)
         progressView.progress = Float(percentage)
+        
+        updateCounts()
+       
         
     }
     
@@ -144,17 +184,45 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "DayCell", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "DayCell") ?? UITableViewCell(style: .value1, reuseIdentifier: "DayCell")
         
         let text: String
+        var count = 0
         if indexPath.section == 0 {
             text = weekdays[indexPath.row]
+            if(text == "All"){
+                //count = getTotalUnfinishedTasks()
+                //print("total tasks are \(count)")
+                
+                count = weekdayCounts[text]!
+            }else if(text == "Finished"){
+                //count = getTotalFinishedTasks()
+                count = weekdayCounts[text]!
+                
+            }else{
+                //let weekdayID = getIdForWeekday(name: text)
+                //count = getCountByWeekday(weekdayID: weekdayID)
+                //print("count for \(text) is \(count)")
+                count = weekdayCounts[text]!
+            }
+            print("count for \(text) is \(count)")
+            
         } else {
             text = tags[indexPath.row]
+            let tagID = tagIdMap[text]
+            //count = getCountByTag(tagID: tagID!)
+            //print("count for \(text) is \(count)")
+            count = tagCounts[text]!
         }
+        
+    
+  
+        cell.detailTextLabel?.text = "\(count)"
+        cell.detailTextLabel?.font = UIFont.boldSystemFont(ofSize: 15)
         
         cell.textLabel?.text = text
         cell.textLabel?.font = UIFont.boldSystemFont(ofSize: 19)
+        
         cell.backgroundColor = UIColor(named: "pink")
 
         // Set icons
@@ -267,7 +335,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
         //print("Database path: \(databasePath)")
 
         if (dailyDoDB.open()) {
-            print("OPENED DB")
+            //print("OPENED DB")
             let getSQL = "SELECT id FROM Weekdays WHERE name = '\(name)'"
             if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
                 if result.next() { // move to the first row with .next()
@@ -288,6 +356,154 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
         
     }
     
+    func getCountByWeekday(weekdayID: Int) -> Int {
+        // Get weekday from the ID
+        //print("Get weekday by id: \(id)")
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        //print("Database path: \(databasePath)")
+
+        if (dailyDoDB.open()) {
+            //print("OPENED DB")
+            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE weekday = '\(weekdayID)' AND finished = false"
+            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
+                if result.next() { // move to the first row with .next()
+                    let count = Int(result.int(forColumn: "count"))
+                    
+                    return count
+                } else {
+                    print("Get count for weekday function: No matching weekday id found for name \(weekdayID)")
+                }
+            } else {
+                print("Failed to fetch count by weekday: \(dailyDoDB.lastErrorMessage())")
+            }
+        }else{
+            print("Failed to open DB")
+            
+        }
+        return 0
+        
+    }
+    
+    func getCountByTag(tagID: Int) -> Int {
+        // Get weekday from the ID
+        //print("Get weekday by id: \(id)")
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        //print("Database path: \(databasePath)")
+
+        if (dailyDoDB.open()) {
+            //print("OPENED DB")
+            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE weekday = '\(tagID)' AND finished = false"
+            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
+                if result.next() { // move to the first row with .next()
+                    let count = Int(result.int(forColumn: "count"))
+                    
+                    return count
+                } else {
+                    print("Get count for tag function: Nothing found for tag \(tagID)")
+                }
+            } else {
+                print("Failed to fetch count by tag: \(dailyDoDB.lastErrorMessage())")
+            }
+        }else{
+            print("Failed to open DB")
+            
+        }
+        return 0
+        
+    }
+    
+    func updateCounts() {
+        print("UPDATING COUNTS")
+        weekdayCounts.removeAll()
+        tagCounts.removeAll()
+        
+        // Get the counts
+        for day in weekdays {
+            let count: Int
+            switch day {
+            case "All":
+                count = getTotalUnfinishedTasks()
+            case "Finished":
+                count = getTotalFinishedTasks()
+            default:
+                let weekdayID = getIdForWeekday(name: day)
+                count = getCountByWeekday(weekdayID: weekdayID)
+                
+            }
+            //weekdayCounts[day] = count
+            if weekdayCounts[day] == nil {
+                weekdayCounts[day] = 0
+            }
+            weekdayCounts[day]? = count
+            print("\(day) has count \(count)")
+            
+        }
+        
+        for tag in tags {
+            if tag != "None", let tagID = tagIdMap[tag] {
+                tagCounts[tag] = getCountByTag(tagID: tagID)
+            }
+        }
+        
+        tableView.reloadData()
+    }
+
+    
+    func getTotalUnfinishedTasks() -> Int {
+        // Get weekday from the ID
+        //print("Get weekday by id: \(id)")
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        //print("Database path: \(databasePath)")
+
+        if (dailyDoDB.open()) {
+            //print("OPENED DB")
+            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE finished = false;"
+            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
+                if result.next() { // move to the first row with .next()
+                    let count = Int(result.int(forColumn: "count"))
+                    
+                    return count
+                } else {
+                    print("Get total count returned nothing")
+                }
+            } else {
+                print("Failed to fetch count by weekday: \(dailyDoDB.lastErrorMessage())")
+            }
+        }else{
+            print("Failed to open DB")
+            
+        }
+        return 0
+        
+    }
+    
+    func getTotalFinishedTasks() -> Int {
+        // Get weekday from the ID
+        //print("Get weekday by id: \(id)")
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        //print("Database path: \(databasePath)")
+
+        if (dailyDoDB.open()) {
+            //print("OPENED DB")
+            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE finished = true;"
+            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
+                if result.next() { // move to the first row with .next()
+                    let count = Int(result.int(forColumn: "count"))
+                    
+                    return count
+                } else {
+                    print("Get total count returned nothing")
+                }
+            } else {
+                print("Failed to fetch count by weekday: \(dailyDoDB.lastErrorMessage())")
+            }
+        }else{
+            print("Failed to open DB")
+            
+        }
+        return 0
+        
+    }
     @objc func populateDB(){
         let dailyDoDB = FMDatabase(path: databasePath as String)
         
