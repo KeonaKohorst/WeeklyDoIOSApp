@@ -209,7 +209,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
             
         } else {
             text = tags[indexPath.row]
-            let tagID = tagIdMap[text]
+            //let tagID = tagIdMap[text]
             //count = getCountByTag(tagID: tagID!)
             //print("count for \(text) is \(count)")
             count = tagCounts[text]!

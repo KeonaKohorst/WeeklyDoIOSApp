@@ -118,8 +118,14 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
             let desc = descField.text ?? ""
             
             var day: String = "General"
-            tag = tagButton.titleLabel!.text!
+            var tag: String = "None"
+           
+            
+            if let selectedTag = tagButton.title(for: .normal){
+                tag = selectedTag
+            }
             let tagId = tagIdMap[tag]
+            print("Entry view controller save task, task id is: \(tagId!) and tag is \(tag)")
             
             if let selectedDay = button.title(for: .normal) {
                 day = selectedDay  // Assign value to the variable
@@ -154,10 +160,11 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
                     
                
                 }else{
+                    //no weekday selected
                     let indexInList = getLatestIndexInListForGeneral(day: "General")
                     let newIndexInList = indexInList + 1
                     print("The indexInList was \(indexInList) ad the new one is \(newIndexInList)")
-                    insertSQL = "INSERT INTO tasks (taskString, description, weekday, indexInList) VALUES ('\(task)', '\(desc)', 0, \(newIndexInList));"
+                    insertSQL = "INSERT INTO tasks (taskString, description, weekday, indexInList, tag) VALUES ('\(task)', '\(desc)', 0, \(newIndexInList), \(tagId!));"
                 }
                 
                 let result = dailyDoDB.executeUpdate(insertSQL, withArgumentsIn: [])

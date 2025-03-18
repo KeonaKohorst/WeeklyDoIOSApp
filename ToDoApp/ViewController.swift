@@ -445,7 +445,7 @@ extension ViewController: UITableViewDelegate{
             }
         
         }else if(weekday == "Finished"){
-            var day = self.weekdaysOrder[indexPath.section]
+            let day = self.weekdaysOrder[indexPath.section]
             let tasksForDay = self.groupedTasks[day] //holds all tasks for the day of the section
             
             //get the title and descrption from the selected cell
@@ -651,7 +651,7 @@ extension ViewController: UITableViewDataSource{
         //print("Source index section is \(sourceIndexPath.section)")
         //let day = groupedTasks.keys.sorted()[sourceIndexPath.section]
         let day = (self.weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)) ? self.weekdaysOrder[sourceIndexPath.section] : self.weekday
-        let destDay = (self.weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)) ? self.weekdaysOrder[destinationIndexPath.section] : self.weekday
+        //let destDay = (self.weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)) ? self.weekdaysOrder[destinationIndexPath.section] : self.weekday
         
         //let dayID = getIdForWeekday(name: day)
         //let destDayID = getIdForWeekday(name: destDay)
