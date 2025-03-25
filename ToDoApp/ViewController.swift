@@ -515,6 +515,59 @@ class ViewController: UIViewController {
         }
     }
     
+    func launchConfetti() {
+       let confettiLayer = CAEmitterLayer()
+       confettiLayer.emitterPosition = CGPoint(x: view.bounds.midX, y: -10) // Start from top
+       confettiLayer.emitterShape = .line
+       confettiLayer.emitterSize = CGSize(width: view.bounds.width, height: 1)
+       confettiLayer.emitterCells = createConfettiCells()
+       
+       view.layer.addSublayer(confettiLayer)
+       
+       // Stop after 2 seconds
+       DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+           confettiLayer.birthRate = 0
+       }
+       
+       // Remove confetti after it's done animating
+       DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
+           confettiLayer.removeFromSuperlayer()
+       }
+   }
+   
+   private func createConfettiCells() -> [CAEmitterCell] {
+       let colorNames = ["confettiPink", "confettiYellow", "green", "confettiBlue", "purple"]
+       
+       
+       return colorNames.compactMap{ name in
+           guard let color = UIColor(named: name) else { return nil }
+       
+      
+           let cell = CAEmitterCell() //create a single particle
+           cell.birthRate = 2 // decides the amount of confetti particles per second
+           cell.lifetime = 1.5 //how many seconds each confetti particle is visible before disappearing
+           cell.velocity = CGFloat.random(in: 90...150) // how fast the confetti moves
+           cell.velocityRange = 30 //makes it so diff particles have diff speed
+           cell.emissionLongitude = .pi //direction in which the confetti is emitted
+           cell.emissionRange = .pi / 8 //adds variation to emission angle
+           cell.spin = CGFloat.random(in: -0.5...0.5) //makes confetti spin as it falls
+           cell.scale = 0.3 // size of each particle
+           cell.contents = createColoredConfettiImage(color: color).cgImage //assigns an image to the particle
+           return cell
+       }
+   }
+       
+    
+    
+    private func createColoredConfettiImage(color: UIColor) -> UIImage {
+        let size = CGSize(width: 10, height: 10)
+        return UIGraphicsImageRenderer(size: size).image { context in
+            color.setFill()
+            let path = UIBezierPath(roundedRect: CGRect(origin: .zero, size: size), cornerRadius: 2)
+            path.fill()
+        }
+    }
+    
 
 
 }
@@ -666,6 +719,7 @@ extension ViewController: UITableViewDelegate{
                     self.doneTask(taskID: id)
 
                     completionHandler(true) // Mark the action as completed
+                    self.launchConfetti()
                     
                 }
                 
@@ -686,6 +740,7 @@ extension ViewController: UITableViewDelegate{
                         let id = foundTask.id
                         self.doneTask(taskID: id)
                         completionHandler(true) // Mark the action as completed
+                        self.launchConfetti()
                     }else{
                         print("Couldn't find a task with title \(taskTitle) and desc \(taskDesc)")
                     }
