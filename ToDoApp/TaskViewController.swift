@@ -240,7 +240,7 @@ class TaskViewController: UIViewController {
                 print("Error: \(dailyDoDB.lastErrorMessage())")
                 
             } else {
-                print("Done task with ID: \(taskIDDB)")
+                print("Not done task with ID: \(taskIDDB)")
                 update?()
                 
                 navigationController?.popViewController(animated: true)

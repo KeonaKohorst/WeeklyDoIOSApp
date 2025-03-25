@@ -82,9 +82,15 @@
                                     <action selector="didTapSort" destination="BYZ-38-t0r" id="KTR-qX-kYU"/>
                                 </connections>
                             </barButtonItem>
+                            <barButtonItem title="Delete All" id="lr3-uZ-FgV">
+                                <connections>
+                                    <action selector="didTapDeleteAll" destination="BYZ-38-t0r" id="haq-Mm-y3b"/>
+                                </connections>
+                            </barButtonItem>
                         </rightBarButtonItems>
                     </navigationItem>
                     <connections>
+                        <outlet property="deleteAllButton" destination="lr3-uZ-FgV" id="1KR-8r-yel"/>
                         <outlet property="noneLabel" destination="Lzt-tn-m0D" id="qQU-QV-fk8"/>
                         <outlet property="plainTableView" destination="2IX-Oc-W1S" id="ADC-oO-6mB"/>
                         <outlet property="sortButton" destination="ooh-mG-clF" id="Fxp-xC-FVL"/>

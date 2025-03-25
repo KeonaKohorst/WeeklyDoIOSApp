@@ -69,6 +69,7 @@ class ViewController: UIViewController {
     @IBOutlet weak var plainTableView: UITableView!
     @IBOutlet weak var noneLabel: UILabel!
     @IBOutlet weak var sortButton: UIBarButtonItem!
+    @IBOutlet weak var deleteAllButton: UIBarButtonItem!
     
     @IBAction func didTapAdd(){
         let vc = storyboard?.instantiateViewController(identifier: "entry") as! EntryViewController
@@ -109,6 +110,29 @@ class ViewController: UIViewController {
             plainTableView.isEditing = true
             sortButton.title = "Stop"
         }
+    }
+    
+    @IBAction func didTapDeleteAll(){
+        print("DELETING ALL FINISHED TASKS")
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        
+        if (dailyDoDB.open()) {
+            let deleteSQL = "DELETE FROM tasks WHERE finished = true"
+            if dailyDoDB.executeUpdate(deleteSQL, withArgumentsIn: []) {
+                print("Successfully deleted all finished tasks")
+            } else {
+                print("Failed to delete all finished tasks: \(dailyDoDB.lastErrorMessage())")
+            }
+            
+            dailyDoDB.close()
+            print("EXECUTED DELETE ALL QUERY")
+        }else{
+            print("Failed to open DB")
+            
+        }
+        updateTasks()
+        print("DONE DELETING ALL FINISHED TASKS")
+        
     }
     
     func getWeekdayById(id: Int) -> String {
@@ -207,7 +231,11 @@ class ViewController: UIViewController {
             noneLabel.text = ""
             self.plainTableView.isHidden = false
         }else{
-            noneLabel.text = "Nothing to do!"
+            if(weekday != "Finished"){
+                noneLabel.text = "Nothing to do!"
+            }else{
+                noneLabel.text = "Nothing done yet!"
+            }
             self.plainTableView.isHidden = true
         }
     }
@@ -385,9 +413,16 @@ class ViewController: UIViewController {
         plainTableView.delegate = self
         plainTableView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
         
-        //hide sort button if coming from a tag or finished view 
+        //hide sort button if coming from a tag or finished view
         if(weekday == "Finished" || isTag(tag: weekday)){
             sortButton.isHidden = true
+        }
+        
+        //show delete all button if coming from finished view
+        if(weekday == "Finished"){
+            deleteAllButton.isHidden = false
+        }else{
+            deleteAllButton.isHidden = true
         }
       
         
@@ -403,6 +438,8 @@ class ViewController: UIViewController {
         
     }
     
+    
+    
 
     @objc func deleteTask(taskIDDB: Int){
         //print("TASK index RECEIVED IS   ", taskIDDB)
@@ -417,6 +454,60 @@ class ViewController: UIViewController {
             } else {
                 print("Deleted task with ID: \(taskIDDB)")
                 updateTasks()
+            }
+            dailyDoDB.close()
+        } else {
+            print("Error: \(dailyDoDB.lastErrorMessage())")
+        }
+    }
+    
+    @objc func doneTask(taskID: Int){
+        //this function sets the finished boolean to true
+        let taskIDDB = taskID
+        
+        //print("TASK ID in DB RECEIVED IS   ", taskIDDB)
+        
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        if (dailyDoDB.open()) {
+            let updateSQL = "UPDATE Tasks SET finished = true WHERE id = '\(taskIDDB)'"
+            let result = dailyDoDB.executeUpdate(updateSQL, withArgumentsIn: [])
+            if !result {
+                
+                print("Error: \(dailyDoDB.lastErrorMessage())")
+                
+            } else {
+                print("Done task with ID: \(taskIDDB)")
+                updateTasks()
+                
+                
+                
+            }
+            dailyDoDB.close()
+        } else {
+            print("Error: \(dailyDoDB.lastErrorMessage())")
+        }
+    }
+    
+    @objc func notDoneTask(taskID: Int){
+        //this function sets the finished boolean to true
+        let taskIDDB = taskID
+        
+        //print("TASK ID in DB RECEIVED IS   ", taskIDDB)
+        
+        let dailyDoDB = FMDatabase(path: databasePath as String)
+        if (dailyDoDB.open()) {
+            let updateSQL = "UPDATE Tasks SET finished = false WHERE id = '\(taskIDDB)'"
+            let result = dailyDoDB.executeUpdate(updateSQL, withArgumentsIn: [])
+            if !result {
+                
+                print("Error: \(dailyDoDB.lastErrorMessage())")
+                
+            } else {
+                print("Not done task with ID: \(taskIDDB)")
+                updateTasks()
+                
+                
+                
             }
             dailyDoDB.close()
         } else {
@@ -548,6 +639,7 @@ extension ViewController: UITableViewDelegate{
                             //delete the match that was found
                             let id = foundTask.id
                             self.deleteTask(taskIDDB: id)
+                            completionHandler(true) // Mark the action as completed
                         }else{
                             print("Couldn't find a task with title \(taskTitle) and desc \(taskDesc)")
                         }
@@ -557,8 +649,83 @@ extension ViewController: UITableViewDelegate{
                 }
 
             }
+        
+        let markDoneAction = UIContextualAction(style: .normal, title: "Done"){ action, view, completionHandler in
+            print("Done tapped")
             
-            return UISwipeActionsConfiguration(actions: [deleteAction])
+            if(self.weekday == "All" || self.isWeekday(day: self.weekday)){
+                let day = (self.weekday == "All") ? self.weekdaysOrder[indexPath.section] : self.weekday
+                
+                //get the task for the weekday or for all and delete
+                if let tasks = self.groupedTasks[day]{
+                    let task = tasks[indexPath.row]
+                    let id = task.id
+                    //let idToRemove = self.ids[indexPath.row]
+
+                    // Delete from the database
+                    self.doneTask(taskID: id)
+
+                    completionHandler(true) // Mark the action as completed
+                    
+                }
+                
+            }else{
+                //if the category is the finished filter or a tag filter we need to look for the specific task bc row index will not be reliable
+                let day = self.weekdaysOrder[indexPath.section]
+                let tasksForDay = self.groupedTasks[day] //holds all tasks for the day of the section
+                
+                //get the title and descrption from the selected cell
+                if let cell = tableView.cellForRow(at: indexPath) {
+                    let taskTitle = cell.textLabel?.text ?? ""
+                    let taskDesc = cell.detailTextLabel?.text ?? ""
+                    print("Task title tom mark done is: \(taskTitle)")
+                    
+                    //search through groupedTasks to get the task object based on title and description
+                    if let foundTask = tasksForDay!.first(where: {$0.taskString == taskTitle && $0.description == taskDesc}){
+                        //delete the match that was found
+                        let id = foundTask.id
+                        self.doneTask(taskID: id)
+                        completionHandler(true) // Mark the action as completed
+                    }else{
+                        print("Couldn't find a task with title \(taskTitle) and desc \(taskDesc)")
+                    }
+                }else{
+                    print("Error getting cell")
+                }
+            }
+            
+        }
+        markDoneAction.backgroundColor = UIColor(named: "mint" )
+        
+        let putBackAction = UIContextualAction(style: .normal, title: "Put Back"){ action, view, completionHandler in
+            let day = self.weekdaysOrder[indexPath.section]
+            let tasksForDay = self.groupedTasks[day] //holds all tasks for the day of the section
+            
+            //get the title and descrption from the selected cell
+            if let cell = tableView.cellForRow(at: indexPath) {
+                let taskTitle = cell.textLabel?.text ?? ""
+                let taskDesc = cell.detailTextLabel?.text ?? ""
+                print("Task title tom mark not done is: \(taskTitle)")
+                
+                //search through groupedTasks to get the task object based on title and description
+                if let foundTask = tasksForDay!.first(where: {$0.taskString == taskTitle && $0.description == taskDesc}){
+                    //delete the match that was found
+                    let id = foundTask.id
+                    self.notDoneTask(taskID: id)
+                    completionHandler(true) // Mark the action as completed
+                }else{
+                    print("Couldn't find a task with title \(taskTitle) and desc \(taskDesc)")
+                }
+                
+            }
+        }
+        putBackAction.backgroundColor = UIColor(named: "blue")
+            
+        if(weekday != "Finished"){
+            return UISwipeActionsConfiguration(actions: [deleteAction, markDoneAction])
+        }else{
+            return UISwipeActionsConfiguration(actions: [deleteAction, putBackAction])
+        }
     }
     
     func isTag(tag: String) -> Bool {
