@@ -4,23 +4,7 @@
 //
 //  Created by COSC Student on 2025-03-06.
 
-//next step i want to use DB instead of user default, and then start implementing features like this:
-// - daily tasks, these repeat every day and you can mark them off every day
-// - only 1 day task, when inside daily tasks, for the current day you can add a special current day task which doesn't repeat the next day
-// - the ability to rearrange your tasks by dragging and dropping, order is not decided based on time, the user decides order themselves.
-// - ability to add a task between any two other tasks
 
-//app can be called DailyDo
-//when you open it you can see all your tasks for the day
-//when you finish one, it dissappears from the main view but you can go to another to see what you have finished today
-//when you add one, you can do so by clicking between any two tasks
-
-//buttons:
-// Add Repeated Task
-// Add Current Day Task
-// See Completed Tasks (only for the day)
-
-//every day it would reset the view back to all repeated daily tasks, and it would empty finished tasks.
 
 import UIKit
 
@@ -34,13 +18,8 @@ struct Task{
 }
 
 class ViewController: UIViewController {
-    //var tasks = [String]()
-    //var taskss: [Task] = []
-    //var tasks: [String] = []
-    //var descriptions: [String] = []
-    //var ids: [Int] = []
     
-    var weekday: String = ""
+    var category: String = ""
     
     var groupedTasks: [String: [Task]] = [:]
     var weekdaysOrder: [String] = ["General", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
@@ -76,18 +55,18 @@ class ViewController: UIViewController {
         vc.title = "New Task"
         
         //weekday is category, could be a tag name.
-        if(isWeekday(day: weekday) || weekday == "All"){
+        if(isWeekday(day: category) || category == "All"){
             
             
-            vc.weekday = weekday
+            vc.weekday = category
             
         }else{
             //if finished or tag
             vc.weekday = "All"
-            if(weekday == "Finished"){
+            if(category == "Finished"){
                 vc.tag = "None"
             }else{
-                vc.tag = weekday
+                vc.tag = category
             }
         }
         
@@ -206,15 +185,15 @@ class ViewController: UIViewController {
     func updateTasks(){
         //print("ENTERING UPDATE TASKS IN VIEW CONTROLLER")
         //get tasks from the DB
-        if(weekday == "All"){
+        if(category == "All"){
             getAllUnfinishedTasks()
             //printGroupedTasks(groupedTasks)
-        }else if(weekday == "Finished"){
+        }else if(category == "Finished"){
             //print("Category is finished tasks")
             getAllFinishedTasks()
             //printGroupedTasks(groupedTasks)
-        }else if(tagIdMap.keys.contains(weekday)){
-            getAllUnfinishedTasksByTag(tag: weekday)
+        }else if(tagIdMap.keys.contains(category)){
+            getAllUnfinishedTasksByTag(tag: category)
             //printGroupedTasks(groupedTasks)
         }else{
             //print("Getting all unfinished tasks for weekday \(weekday)")
@@ -231,7 +210,7 @@ class ViewController: UIViewController {
             noneLabel.text = ""
             self.plainTableView.isHidden = false
         }else{
-            if(weekday != "Finished"){
+            if(category != "Finished"){
                 noneLabel.text = "Nothing to do!"
             }else{
                 noneLabel.text = "Nothing done yet!"
@@ -247,7 +226,7 @@ class ViewController: UIViewController {
         
         if (dailyDoDB.open()) {
             let tagID = tagIdMap[tag]
-            let querySQL = "SELECT id, taskString, description, indexInList, weekday, tag FROM tasks WHERE finished != true AND tag=\(tagID!) ORDER BY weekday, indexInList;"
+            let querySQL = "SELECT id, taskString, description, indexInList, weekday, tag FROM tasks WHERE finished != true AND tag=\(tagID!) AND date IS NULL ORDER BY weekday, indexInList;"
             if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
             
                 while results.next() {
@@ -287,7 +266,7 @@ class ViewController: UIViewController {
         let dailyDoDB = FMDatabase(path: databasePath as String)
         
         if (dailyDoDB.open()) {
-            let querySQL = "SELECT id, taskString, description, indexInList, weekday, tag FROM tasks WHERE finished != true ORDER BY weekday, indexInList;"
+            let querySQL = "SELECT id, taskString, description, indexInList, weekday, tag FROM tasks WHERE finished != true AND date IS NULL ORDER BY weekday, indexInList;"
             if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
             
                 while results.next() {
@@ -322,14 +301,14 @@ class ViewController: UIViewController {
     }
     
     @IBAction func getAllUnfinishedTasksForWeekday() {
-        print("GETTING UNFINISHED TASKS FOR \(weekday)")
+        print("GETTING UNFINISHED TASKS FOR \(category)")
         
         groupedTasks.removeAll()
 
         let dailyDoDB = FMDatabase(path: databasePath as String)
 
         if dailyDoDB.open() {
-            let querySQL = "SELECT t.id, t.taskString, t.description, w.name, t.indexInList, t.tag FROM tasks t JOIN weekdays w ON w.id = t.weekday WHERE t.finished != true AND w.name = '\(weekday)' ORDER BY t.indexInList;"
+            let querySQL = "SELECT t.id, t.taskString, t.description, w.name, t.indexInList, t.tag FROM tasks t JOIN weekdays w ON w.id = t.weekday WHERE t.finished != true AND w.name = '\(category)' AND date IS NULL ORDER BY t.indexInList;"
             if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
                 while results.next() {
                     let taskID = Int(results.int(forColumn: "id"))  // Get task ID as Int
@@ -364,7 +343,7 @@ class ViewController: UIViewController {
         let dailyDoDB = FMDatabase(path: databasePath as String)
         
         if (dailyDoDB.open()) {
-            let querySQL = "SELECT id, taskString, description, indexInList, weekday, tag FROM tasks WHERE finished = true ORDER BY weekday, indexInList;"
+            let querySQL = "SELECT id, taskString, description, indexInList, weekday, tag FROM tasks WHERE finished = true and DATE IS NULL ORDER BY weekday, indexInList;"
             if let results: FMResultSet = dailyDoDB.executeQuery(querySQL, withArgumentsIn: []) {
                 
                 while results.next() {
@@ -408,18 +387,18 @@ class ViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
-        self.title = "\(weekday)"
+        self.title = "\(category)"
         plainTableView.dataSource = self
         plainTableView.delegate = self
         plainTableView.contentInset = UIEdgeInsets(top: 10, left: 0, bottom: 0, right: 0)
         
         //hide sort button if coming from a tag or finished view
-        if(weekday == "Finished" || isTag(tag: weekday)){
+        if(category == "Finished" || isTag(tag: category)){
             sortButton.isHidden = true
         }
         
         //show delete all button if coming from finished view
-        if(weekday == "Finished"){
+        if(category == "Finished"){
             deleteAllButton.isHidden = false
         }else{
             deleteAllButton.isHidden = true
@@ -515,6 +494,7 @@ class ViewController: UIViewController {
         }
     }
     
+    //function to show confetti when the user swipes and marks a task as done
     func launchConfetti() {
        let confettiLayer = CAEmitterLayer()
        confettiLayer.emitterPosition = CGPoint(x: view.bounds.midX, y: -10) // Start from top
@@ -524,12 +504,12 @@ class ViewController: UIViewController {
        
        view.layer.addSublayer(confettiLayer)
        
-       // Stop after 2 seconds
+       //stop after 2 seconds
        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
            confettiLayer.birthRate = 0
        }
        
-       // Remove confetti after it's done animating
+       //remove confetti after it's done animating
        DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
            confettiLayer.removeFromSuperlayer()
        }
@@ -579,16 +559,16 @@ extension ViewController: UITableViewDelegate{
         var thisWeekday = "unknown"
         var finishedTask = false
         var selectedTask: Task? = nil
-        if tagIdMap.keys.contains(weekday){
+        if tagIdMap.keys.contains(category){
             // User selected from the tag view
-            let selectedTag = weekday
+            let selectedTag = category
             let matchingTasks = groupedTasks.values.flatMap  { $0 }.filter { $0.tag == tagIdMap[selectedTag] }
             
             if indexPath.row < matchingTasks.count{
                 selectedTask = matchingTasks[indexPath.row]
             }
         
-        }else if(weekday == "Finished"){
+        }else if(category == "Finished"){
             let day = self.weekdaysOrder[indexPath.section]
             let tasksForDay = self.groupedTasks[day] //holds all tasks for the day of the section
             
@@ -612,10 +592,10 @@ extension ViewController: UITableViewDelegate{
         }else{
             //the task is a weekday/general selection
             thisWeekday = "General"
-            if(weekday == "All"){
+            if(category == "All"){
                 thisWeekday = weekdaysOrder[indexPath.section]
-            }else if(!tagIdMap.keys.contains(weekday)){
-                thisWeekday = weekday
+            }else if(!tagIdMap.keys.contains(category)){
+                thisWeekday = category
             }
             selectedTask = groupedTasks[thisWeekday]?[indexPath.row]
             
@@ -644,7 +624,7 @@ extension ViewController: UITableViewDelegate{
         vc.weekday = task.weekday
         vc.tagID = task.tag
         vc.taskFinished = finishedTask
-        vc.weekdayID = getIdForWeekday(name: weekday)
+        vc.weekdayID = getIdForWeekday(name: category)
         vc.update = {
             DispatchQueue.main.async{ //make sure we prioritize updating the actual tasks
                 self.updateTasks()
@@ -660,8 +640,8 @@ extension ViewController: UITableViewDelegate{
             let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { (_, _, completionHandler) in
  
                 
-                if(self.weekday == "All" || self.isWeekday(day: self.weekday)){
-                    let day = (self.weekday == "All") ? self.weekdaysOrder[indexPath.section] : self.weekday
+                if(self.category == "All" || self.isWeekday(day: self.category)){
+                    let day = (self.category == "All") ? self.weekdaysOrder[indexPath.section] : self.category
                     
                     //get the task for the weekday or for all and delete
                     if let tasks = self.groupedTasks[day]{
@@ -706,8 +686,8 @@ extension ViewController: UITableViewDelegate{
         let markDoneAction = UIContextualAction(style: .normal, title: "Done"){ action, view, completionHandler in
             print("Done tapped")
             
-            if(self.weekday == "All" || self.isWeekday(day: self.weekday)){
-                let day = (self.weekday == "All") ? self.weekdaysOrder[indexPath.section] : self.weekday
+            if(self.category == "All" || self.isWeekday(day: self.category)){
+                let day = (self.category == "All") ? self.weekdaysOrder[indexPath.section] : self.category
                 
                 //get the task for the weekday or for all and delete
                 if let tasks = self.groupedTasks[day]{
@@ -776,7 +756,7 @@ extension ViewController: UITableViewDelegate{
         }
         putBackAction.backgroundColor = UIColor(named: "blue")
             
-        if(weekday != "Finished"){
+        if(category != "Finished"){
             return UISwipeActionsConfiguration(actions: [deleteAction, markDoneAction])
         }else{
             return UISwipeActionsConfiguration(actions: [deleteAction, putBackAction])
@@ -799,7 +779,7 @@ extension ViewController: UITableViewDataSource{
     func numberOfSections(in tableView: UITableView) -> Int {
         
         //return groupedTasks.keys.count
-        if(weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)){
+        if(category == "All" || category == "Finished" || tagIdMap.keys.contains(category)){
             //print("Number of sections in table view is 8")
             return 8
         }else{
@@ -809,15 +789,15 @@ extension ViewController: UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if(weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)){
+        if(category == "All" || category == "Finished" || tagIdMap.keys.contains(category)){
             return weekdaysOrder[section]
         }else{
-            return weekday
+            return category
         }
     }
     
     func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if(weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)){
+        if(category == "All" || category == "Finished" || tagIdMap.keys.contains(category)){
            return 30
         }else{
             return 0
@@ -825,7 +805,7 @@ extension ViewController: UITableViewDataSource{
     }
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if(weekday != "All" && weekday != "Finished" && !tagIdMap.keys.contains(weekday)){
+        if(category != "All" && category != "Finished" && !tagIdMap.keys.contains(category)){
             return UIView()
         }
         let headerView = UIView()
@@ -838,7 +818,7 @@ extension ViewController: UITableViewDataSource{
         headerView.addSubview(titleLabel)
         
         NSLayoutConstraint.activate([
-            titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16), // Adjust left padding
+            titleLabel.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
             titleLabel.trailingAnchor.constraint(equalTo: headerView.trailingAnchor, constant: -16),
             titleLabel.topAnchor.constraint(equalTo: headerView.topAnchor, constant: 4),
             titleLabel.bottomAnchor.constraint(equalTo: headerView.bottomAnchor, constant: -4)
@@ -852,14 +832,14 @@ extension ViewController: UITableViewDataSource{
         //return tasks.count
         //let weekday = weekdaysOrder[section]
        // return groupedTasks[weekday]?.count ?? 0
-        if weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday) {
+        if category == "All" || category == "Finished" || tagIdMap.keys.contains(category) {
             //let keys = Array(groupedTasks.keys).sorted { weekdaysOrder.firstIndex(of: $0) ?? Int.max < weekdaysOrder.firstIndex(of: $1) ?? Int.max }
             //return groupedTasks[keys[section]]?.count ?? 0
             let weekday = weekdaysOrder[section]
             return groupedTasks[weekday]?.count ?? 0
             
         } else {
-            return groupedTasks[weekday]?.count ?? 0
+            return groupedTasks[category]?.count ?? 0
         }
         
     }
@@ -872,7 +852,7 @@ extension ViewController: UITableViewDataSource{
         
         //print("Source index section is \(sourceIndexPath.section)")
         //let day = groupedTasks.keys.sorted()[sourceIndexPath.section]
-        let day = (self.weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)) ? self.weekdaysOrder[sourceIndexPath.section] : self.weekday
+        let day = (self.category == "All" || category == "Finished" || tagIdMap.keys.contains(category)) ? self.weekdaysOrder[sourceIndexPath.section] : self.category
         //let destDay = (self.weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)) ? self.weekdaysOrder[destinationIndexPath.section] : self.weekday
         
         //let dayID = getIdForWeekday(name: day)
@@ -949,11 +929,11 @@ extension ViewController: UITableViewDataSource{
         
         var task: Task?
 
-        if (weekday == "All" || weekday == "Finished" || tagIdMap.keys.contains(weekday)){
+        if (category == "All" || category == "Finished" || tagIdMap.keys.contains(category)){
             let thisWeekday = weekdaysOrder[indexPath.section]
             task = groupedTasks[thisWeekday]?[indexPath.row]
         } else {
-            task = groupedTasks[weekday]?[indexPath.row]
+            task = groupedTasks[category]?[indexPath.row]
         }
 
         if let task = task {

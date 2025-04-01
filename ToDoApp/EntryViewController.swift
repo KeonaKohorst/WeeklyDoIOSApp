@@ -198,7 +198,7 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
         let dailyDoDB = FMDatabase(path: databasePath as String)
         
         if (dailyDoDB.open()) {
-            let getSQL = "SELECT MAX(t.indexInList) AS indexInList FROM tasks t, weekdays w WHERE w.name= '\(day)' AND w.id = t.weekday;"
+            let getSQL = "SELECT MAX(t.indexInList) AS indexInList FROM tasks t, weekdays w WHERE w.name= '\(day)' AND w.id = t.weekday AND date IS NULL;"
             if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
                 if result.next() {
                     let index = Int(result.int(forColumn: "indexInList"))
@@ -224,7 +224,7 @@ class EntryViewController: UIViewController, UITextFieldDelegate {
         let dailyDoDB = FMDatabase(path: databasePath as String)
         
         if (dailyDoDB.open()) {
-            let getSQL = "SELECT MAX(t.indexInList) AS indexInList FROM tasks t WHERE t.weekday = 0;"
+            let getSQL = "SELECT MAX(t.indexInList) AS indexInList FROM tasks t WHERE t.weekday = 0 AND date IS NULL;"
             if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
                 if result.next() {
                     let index = Int(result.int(forColumn: "indexInList"))

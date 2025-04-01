@@ -269,7 +269,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
         vc.title = "To Do"
         
         
-        vc.weekday = selectedCategory
+        vc.category = selectedCategory
         print("Sending weekday/category \(selectedCategory)")
         navigationController?.pushViewController(vc, animated: true)
     }
@@ -282,7 +282,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
             var totalTasksForDay = 0
             var totalFinishedTasksForDay = 0
             
-            var getSQL = "SELECT COUNT(*) AS count FROM Tasks WHERE weekday = '\(id)'"
+            var getSQL = "SELECT COUNT(*) AS count FROM Tasks WHERE weekday = '\(id)' AND date IS NULL"
             if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
                 if result.next() { // move to the first row with .next()
                     totalTasksForDay = Int(result.int(forColumn: "count"))
@@ -295,7 +295,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
                 print("Failed to fetch total tasks for day: \(dailyDoDB.lastErrorMessage())")
             }
             
-            getSQL = "SELECT COUNT(*) AS count FROM Tasks WHERE weekday = '\(id)' AND finished = true"
+            getSQL = "SELECT COUNT(*) AS count FROM Tasks WHERE weekday = '\(id)' AND finished = true AND date IS NULL"
             if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
                 if result.next() { // move to the first row with .next()
                     totalFinishedTasksForDay = Int(result.int(forColumn: "count"))
@@ -364,7 +364,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
 
         if (dailyDoDB.open()) {
             //print("OPENED DB")
-            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE weekday = '\(weekdayID)' AND finished = false"
+            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE weekday = '\(weekdayID)' AND finished = false AND date IS NULL"
             if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
                 if result.next() { // move to the first row with .next()
                     let count = Int(result.int(forColumn: "count"))
@@ -392,7 +392,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
 
         if (dailyDoDB.open()) {
             //print("OPENED DB")
-            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE weekday = '\(tagID)' AND finished = false"
+            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE weekday = '\(tagID)' AND finished = false AND date IS NULL"
             if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
                 if result.next() { // move to the first row with .next()
                     let count = Int(result.int(forColumn: "count"))
@@ -457,7 +457,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
 
         if (dailyDoDB.open()) {
             //print("OPENED DB")
-            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE finished = false;"
+            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE finished = false AND date IS NULL;"
             if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
                 if result.next() { // move to the first row with .next()
                     let count = Int(result.int(forColumn: "count"))
@@ -485,7 +485,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
 
         if (dailyDoDB.open()) {
             //print("OPENED DB")
-            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE finished = true;"
+            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE finished = true AND date IS NULL;"
             if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
                 if result.next() { // move to the first row with .next()
                     let count = Int(result.int(forColumn: "count"))

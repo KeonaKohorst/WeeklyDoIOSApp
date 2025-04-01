@@ -22,6 +22,9 @@
 		79168EFE2D7BDA2F006A41D2 /* FMDatabaseAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 79168EF82D7BDA2F006A41D2 /* FMDatabaseAdditions.m */; };
 		79168F012D7BDE0C006A41D2 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 79168F002D7BDE0C006A41D2 /* libsqlite3.tbd */; };
 		79C2F5892D80C5EA00DB9F4C /* FilterViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C2F5882D80C5EA00DB9F4C /* FilterViewController.swift */; };
+		79C2F58D2D9B578800DB9F4C /* CalendarViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C2F58C2D9B578800DB9F4C /* CalendarViewController.swift */; };
+		79C2F58F2D9B609800DB9F4C /* DateEntryViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C2F58E2D9B609800DB9F4C /* DateEntryViewController.swift */; };
+		79C2F5912D9B7A4A00DB9F4C /* DateTaskViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79C2F5902D9B7A4A00DB9F4C /* DateTaskViewController.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +52,9 @@
 		79168EF92D7BDA2F006A41D2 /* FMDatabaseQueue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FMDatabaseQueue.h; sourceTree = "<group>"; };
 		79168F002D7BDE0C006A41D2 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		79C2F5882D80C5EA00DB9F4C /* FilterViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilterViewController.swift; sourceTree = "<group>"; };
+		79C2F58C2D9B578800DB9F4C /* CalendarViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarViewController.swift; sourceTree = "<group>"; };
+		79C2F58E2D9B609800DB9F4C /* DateEntryViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateEntryViewController.swift; sourceTree = "<group>"; };
+		79C2F5902D9B7A4A00DB9F4C /* DateTaskViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateTaskViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,6 +111,9 @@
 				79168EBA2D7AA3DE006A41D2 /* Info.plist */,
 				79168EEE2D7BDA2D006A41D2 /* ToDoApp-Bridging-Header.h */,
 				79C2F5882D80C5EA00DB9F4C /* FilterViewController.swift */,
+				79C2F58C2D9B578800DB9F4C /* CalendarViewController.swift */,
+				79C2F58E2D9B609800DB9F4C /* DateEntryViewController.swift */,
+				79C2F5902D9B7A4A00DB9F4C /* DateTaskViewController.swift */,
 			);
 			path = ToDoApp;
 			sourceTree = "<group>";
@@ -189,17 +198,20 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				79C2F58D2D9B578800DB9F4C /* CalendarViewController.swift in Sources */,
 				79168EB12D7AA3DB006A41D2 /* ViewController.swift in Sources */,
 				79168EC12D7AADF0006A41D2 /* EntryViewController.swift in Sources */,
 				79168EFB2D7BDA2F006A41D2 /* FMResultSet.m in Sources */,
 				79168EC32D7AAE15006A41D2 /* TaskViewController.swift in Sources */,
 				79168EFD2D7BDA2F006A41D2 /* FMDatabasePool.m in Sources */,
 				79C2F5892D80C5EA00DB9F4C /* FilterViewController.swift in Sources */,
+				79C2F58F2D9B609800DB9F4C /* DateEntryViewController.swift in Sources */,
 				79168EAD2D7AA3DB006A41D2 /* AppDelegate.swift in Sources */,
 				79168EAF2D7AA3DB006A41D2 /* SceneDelegate.swift in Sources */,
 				79168EFA2D7BDA2F006A41D2 /* FMDatabaseQueue.m in Sources */,
 				79168EFC2D7BDA2F006A41D2 /* FMDatabase.m in Sources */,
 				79168EFE2D7BDA2F006A41D2 /* FMDatabaseAdditions.m in Sources */,
+				79C2F5912D9B7A4A00DB9F4C /* DateTaskViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

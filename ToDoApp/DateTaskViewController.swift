@@ -1,96 +1,34 @@
 //
-//  TaskViewController.swift
+//  DateTaskViewController.swift
 //  ToDoApp
 //
-//  Created by COSC Student on 2025-03-06.
+//  Created by COSC Student on 2025-03-31.
 //
 
 import UIKit
 
-class TaskViewController: UIViewController {
-    
-    @IBOutlet var label: UILabel!
+class DateTaskViewController: UIViewController {
     
     @IBOutlet weak var descField: UITextView!
     @IBOutlet weak var titleField: UITextField!
+    @IBOutlet weak var datePicker: UIDatePicker!
     
     var databasePath = String()
     var taskName: String?
-    var taskIndex: Int?
+    var taskDate: String?
     var taskID: Int?
     var taskDescription: String?
     var taskFinished: Bool = false
     var update: (() -> Void)?
     
-    var weekdayID: Int = 0
-    var weekday: String = "Weekday"
-    @IBOutlet weak var button: UIButton! //button to select the weekday
-    var menuChildren: [UIMenuElement] = []
-    var weekdays: [String] = ["General", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-    
-    var tagID: Int = 0
-    @IBOutlet weak var tagButton: UIButton! //button to select a tag
-    var tagMenuChildren: [UIMenuElement] = []
-    var tags: [String] = ["None", "School", "Work", "Fun", "Event", "Chore"]
-    
-    let idTagMap: [Int: String] = [
-        0: "None",
-        1: "School",
-        2: "Work",
-        3: "Fun",
-        4: "Event",
-        5: "Chore"
-    ]
-    
-    let tagIdMap: [String: Int] = [
-        "None": 0,
-        "School": 1,
-        "Work": 2,
-        "Fun": 3,
-        "Event": 4,
-        "Chore": 5
-    ]
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        if(taskFinished){ //if task is finished do not allow editing
-            titleField.isEnabled = false
-            descField.isEditable = false
-            button.isEnabled = false
-            tagButton.isEnabled = false
-        }
-        
+
         //configure style of text view
         descField.layer.borderColor = UIColor(named: "pink")!.cgColor
         descField.layer.borderWidth = 1.0
         descField.layer.cornerRadius = 5.0
         descField.layer.masksToBounds = true
-        
-        //configure weekdays button
-        for weekday in weekdays{
-            menuChildren.append(UIAction(title: weekday, handler: actionClosure))
-        }
-        button.menu = UIMenu(options: .displayInline, children: menuChildren)
-        button.showsMenuAsPrimaryAction = true
-        button.changesSelectionAsPrimaryAction = true
-        
-        if(weekday != "All" && weekday != "General"){
-            //set the button title to the weekday
-            button.setTitle(weekday, for: .normal)
-        }
-        
-        //configure tags button
-        for tag in tags{
-            tagMenuChildren.append(UIAction(title: tag, handler: actionClosureTag))
-        }
-        tagButton.menu = UIMenu(options: .displayInline, children: tagMenuChildren)
-        tagButton.showsMenuAsPrimaryAction = true
-        tagButton.changesSelectionAsPrimaryAction = true
-        
-        let tagTitle = idTagMap[tagID]
-        tagButton.setTitle(tagTitle, for: .normal)
-        
         
         //set up database
         let filemgr = FileManager.default
@@ -103,47 +41,21 @@ class TaskViewController: UIViewController {
         self.title = "Task Details"
         
         if(!taskFinished){
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done Task", style: .done, target: self, action: #selector(doneTask))
+            navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Done Task", style: .done, target: self, action: #selector(deleteTask))
         }else{
             navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Put Back", style: .done, target: self, action: #selector(notDoneTask))
             
         }
         
-        // Do any additional setup after loading the view.
     }
     
-    let actionClosureTag = { (action: UIAction) in print(action.title)}
-    
-    func getIdForWeekday(name: String) -> Int {
-        // Get weekday from the ID
-        //print("Get weekday by id: \(id)")
-        let dailyDoDB = FMDatabase(path: databasePath as String)
-        
-        if (dailyDoDB.open()) {
-            let getSQL = "SELECT id FROM Weekdays WHERE name = '\(name)' AND date IS NULL"
-            if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
-                if result.next() { // move to the first row with .next()
-                    let weekdayID = Int(result.int(forColumn: "id"))
-                    
-                    return weekdayID
-                } else {
-                    print("Getid for weekday function: No matching weekday id found for name \(name)")
-                }
-            } else {
-                print("Failed to fetch id by weekday: \(dailyDoDB.lastErrorMessage())")
-            }
-        }else{
-            print("Failed to open DB")
-            
-        }
-        return 0
-        
+    @IBAction func datePickerChanged(_ sender: UIDatePicker){
+        let date = sender.date
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+        let dateString = dateFormatter.string(from: date)
+        taskDate = dateString
     }
-    
-    
-   
-    
-    let actionClosure = { (action: UIAction) in print(action.title)}
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
@@ -151,12 +63,11 @@ class TaskViewController: UIViewController {
         if self.isMovingFromParent {
             //save the changes the user made to the existing task
             //print("UPDATING TASK!")
-            weekday = button.titleLabel!.text!
+          
             
             updateTask()
         }
     }
-    
     
     @objc func deleteTask(){
         //this function fully deletes the task from the db
@@ -263,17 +174,15 @@ class TaskViewController: UIViewController {
             
             let desc = descField.text ?? ""
             
-            let tag = tagButton.titleLabel!.text ?? "None"
-            let tagID = tagIdMap[tag]
 
             
             let dailyDoDB = FMDatabase(path: databasePath as String)
             if (dailyDoDB.open()){
                 
-                weekdayID = getIdForWeekday(name: weekday)
+                let date = taskDate
                 var updateSQL = ""
 
-                updateSQL = "UPDATE tasks SET taskString = '\(task)', description='\(desc)', weekday=\(weekdayID), tag=\(tagID!) WHERE id = \(taskID!)"
+                updateSQL = "UPDATE tasks SET taskString = '\(task)', description='\(desc)', date='\(date!)' WHERE id = \(taskID!)"
                 //}
                 
                 let result = dailyDoDB.executeUpdate(updateSQL, withArgumentsIn: [])
@@ -311,4 +220,5 @@ class TaskViewController: UIViewController {
         titleField.resignFirstResponder()
         descField.resignFirstResponder()
     }
+
 }
