@@ -69,6 +69,16 @@ class DateTaskViewController: UIViewController {
         }
     }
     
+    override func viewWillAppear(_ animated: Bool){
+        super.viewWillAppear(animated)
+        
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
+        let date = dateFormatter.date(from: taskDate!)
+        
+        datePicker.date = date!
+    }
+    
     @objc func deleteTask(){
         //this function fully deletes the task from the db
         guard let taskIDDB = taskID else {

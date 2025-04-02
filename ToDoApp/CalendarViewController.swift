@@ -364,7 +364,7 @@ extension CalendarViewController: UITableViewDataSource {
         var task: DateTask?
         task = groupedTasks[month]![indexPath.row]
         
-
+        var inPast = false
         if let dateStr = task?.date {
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd HH:mm"
@@ -377,6 +377,13 @@ extension CalendarViewController: UITableViewDataSource {
                 let dfHourMinute = DateFormatter()
                 dfHourMinute.dateFormat = "hh:mm a"
                 hourMinute = dfHourMinute.string(from: date)
+                
+                //IF DATE IS LESS THAN CURRENT DATE THEN MAKE THE CELL GREY
+                let currentDate = Date()
+                if(date < currentDate){
+                    inPast = true
+                    cell.backgroundColor = UIColor(named: "LightGray")
+                }
 
                 print("Day of month: \(dayOfMonth), Time: \(hourMinute)")
             } else {
@@ -392,8 +399,13 @@ extension CalendarViewController: UITableViewDataSource {
             cell.textLabel?.text = dayOfMonth + ": " + task.taskString
             cell.detailTextLabel?.text = hourMinute
            
-            cell.imageView?.image = UIImage(systemName: "calendar")
-            cell.imageView?.tintColor = UIColor(named: "white")
+            if(!inPast){
+                cell.imageView?.image = UIImage(systemName: "calendar")
+                cell.imageView?.tintColor = UIColor(named: "white")
+            }else{
+                cell.imageView?.image = UIImage(systemName: "questionmark.diamond")
+                cell.imageView?.tintColor = UIColor(named: "blue")
+            }
             
             //let tapGesture = UITapGestureRecognizer(target: self, action: #selector(didTapImageView(_:)))
             

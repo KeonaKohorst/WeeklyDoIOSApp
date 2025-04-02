@@ -268,7 +268,9 @@
         <scene sceneID="07e-Si-s41">
             <objects>
                 <navigationController title="Weekly To Do List" automaticallyAdjustsScrollViewInsets="NO" id="gbq-fu-f5n" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Weekly To Do List" image="checklist" catalog="system" id="gGq-qx-clM"/>
+                    <tabBarItem key="tabBarItem" title="Weekly To Do List" image="checklist" catalog="system" id="gGq-qx-clM">
+                        <color key="badgeColor" name="blue"/>
+                    </tabBarItem>
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" largeTitles="YES" id="q1I-hI-aEj">
                         <rect key="frame" x="0.0" y="59" width="393" height="96"/>
@@ -390,7 +392,7 @@
                                 <color key="sectionIndexBackgroundColor" name="white"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="TaskCell" textLabel="fsR-gA-7go" detailTextLabel="mi8-mg-eZt" style="IBUITableViewCellStyleValue1" id="Cal-zq-UMr">
-                                        <rect key="frame" x="20" y="55.333332061767578" width="353" height="43.666667938232422"/>
+                                        <rect key="frame" x="20" y="38" width="353" height="43.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Cal-zq-UMr" id="Wcc-Ls-Lva">
                                             <rect key="frame" x="0.0" y="0.0" width="353" height="43.666667938232422"/>
@@ -468,11 +470,19 @@
         <scene sceneID="bVZ-cV-XtP">
             <objects>
                 <navigationController title="Calendar" automaticallyAdjustsScrollViewInsets="NO" id="Ejq-8q-JHJ" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Calendar" image="calendar" catalog="system" id="SzX-l9-9sF"/>
+                    <tabBarItem key="tabBarItem" title="Calendar" image="calendar" catalog="system" id="SzX-l9-9sF">
+                        <color key="badgeColor" name="blue"/>
+                    </tabBarItem>
                     <toolbarItems/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="SLe-AG-xuF">
-                        <rect key="frame" x="0.0" y="59" width="393" height="44"/>
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" largeTitles="YES" id="SLe-AG-xuF">
+                        <rect key="frame" x="0.0" y="59" width="393" height="96"/>
                         <autoresizingMask key="autoresizingMask"/>
+                        <textAttributes key="titleTextAttributes">
+                            <color key="textColor" name="blue"/>
+                        </textAttributes>
+                        <textAttributes key="largeTitleTextAttributes">
+                            <color key="textColor" name="blue"/>
+                        </textAttributes>
                     </navigationBar>
                     <nil name="viewControllers"/>
                     <connections>
@@ -510,8 +520,12 @@
                                 <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences" returnKeyType="done" enablesReturnKeyAutomatically="YES"/>
                             </textView>
-                            <datePicker contentMode="scaleToFill" restorationIdentifier="datePicker" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="dateAndTime" minuteInterval="1" translatesAutoresizingMaskIntoConstraints="NO" id="SqN-Vt-YiF">
-                                <rect key="frame" x="0.0" y="122.99999999999999" width="393" height="34.333333333333329"/>
+                            <datePicker contentMode="scaleToFill" misplaced="YES" restorationIdentifier="datePicker" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="dateAndTime" minuteInterval="5" translatesAutoresizingMaskIntoConstraints="NO" id="SqN-Vt-YiF">
+                                <rect key="frame" x="0.0" y="128" width="393" height="34.333333333333329"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="393" id="RaC-4e-vUO"/>
+                                    <constraint firstAttribute="width" constant="393" id="wbl-90-4hC"/>
+                                </constraints>
                                 <connections>
                                     <action selector="datePickerChanged:" destination="ORU-4l-3EG" eventType="valueChanged" id="jJs-pQ-Zsr"/>
                                 </connections>
@@ -525,7 +539,6 @@
                             <constraint firstItem="slL-mM-Qxy" firstAttribute="leading" secondItem="VaB-Xx-VmM" secondAttribute="leading" constant="10" id="BqZ-0z-0hq"/>
                             <constraint firstItem="SqN-Vt-YiF" firstAttribute="top" secondItem="slL-mM-Qxy" secondAttribute="bottom" constant="2" id="J2w-nj-pzM"/>
                             <constraint firstItem="VaB-Xx-VmM" firstAttribute="trailing" secondItem="slL-mM-Qxy" secondAttribute="trailing" constant="10" id="JIt-tE-pir"/>
-                            <constraint firstItem="SqN-Vt-YiF" firstAttribute="leading" secondItem="pvM-1m-pbn" secondAttribute="leading" id="bfo-h0-REN"/>
                             <constraint firstItem="VaB-Xx-VmM" firstAttribute="trailing" secondItem="Cjt-ZO-7a5" secondAttribute="trailing" constant="10" id="jg7-lI-PwJ"/>
                             <constraint firstItem="Cjt-ZO-7a5" firstAttribute="leading" secondItem="VaB-Xx-VmM" secondAttribute="leading" constant="10" id="mcD-Jl-MUx"/>
                             <constraint firstItem="SqN-Vt-YiF" firstAttribute="centerX" secondItem="pvM-1m-pbn" secondAttribute="centerX" id="u5w-rm-uHO"/>
@@ -578,8 +591,12 @@
                                 <fontDescription key="fontDescription" type="system" weight="medium" pointSize="17"/>
                                 <textInputTraits key="textInputTraits" autocapitalizationType="sentences" returnKeyType="done" enablesReturnKeyAutomatically="YES"/>
                             </textView>
-                            <datePicker contentMode="scaleToFill" restorationIdentifier="datePicker" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="dateAndTime" minuteInterval="1" translatesAutoresizingMaskIntoConstraints="NO" id="5J8-li-AQI">
+                            <datePicker contentMode="scaleToFill" restorationIdentifier="datePicker" contentHorizontalAlignment="center" contentVerticalAlignment="center" datePickerMode="dateAndTime" minuteInterval="5" translatesAutoresizingMaskIntoConstraints="NO" id="5J8-li-AQI">
                                 <rect key="frame" x="0.0" y="122.99999999999999" width="393" height="34.333333333333329"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="393" id="7mR-yU-aue"/>
+                                    <constraint firstAttribute="width" constant="393" id="Hbs-wx-pqy"/>
+                                </constraints>
                                 <connections>
                                     <action selector="datePickerChanged:" destination="IeQ-kR-8jV" eventType="valueChanged" id="tZx-ml-9WO"/>
                                 </connections>
@@ -595,7 +612,6 @@
                             <constraint firstItem="Ldq-MR-ftb" firstAttribute="top" secondItem="5J8-li-AQI" secondAttribute="bottom" constant="18.666666666666686" id="Gpi-Yn-KuJ"/>
                             <constraint firstItem="Rnh-IG-PHM" firstAttribute="leading" secondItem="YX3-LM-eDc" secondAttribute="leading" constant="10" id="axc-MK-cNH"/>
                             <constraint firstItem="Ldq-MR-ftb" firstAttribute="leading" secondItem="YX3-LM-eDc" secondAttribute="leading" constant="10" id="e4B-dW-zYv"/>
-                            <constraint firstItem="5J8-li-AQI" firstAttribute="leading" secondItem="olX-eb-off" secondAttribute="leading" id="iUj-hV-pwm"/>
                             <constraint firstItem="Rnh-IG-PHM" firstAttribute="top" secondItem="YX3-LM-eDc" secondAttribute="top" constant="10" id="mlq-Cd-JPf"/>
                             <constraint firstItem="5J8-li-AQI" firstAttribute="top" secondItem="Rnh-IG-PHM" secondAttribute="bottom" constant="2" id="oex-YE-de2"/>
                             <constraint firstItem="5J8-li-AQI" firstAttribute="centerX" secondItem="olX-eb-off" secondAttribute="centerX" id="reH-Rf-zDw"/>
