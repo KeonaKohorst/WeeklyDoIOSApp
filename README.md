@@ -1,4 +1,4 @@
-# DailyDoIOSApp
+# WeeklyDoIOSApp
 
 This project is a minimalist weekly to-do list app, designed with simplicity in mind. I created it to address my own frustrations with overly complex task managers. Most apps require dates or times to organize tasks, which I find unnecessary for my weekly planning style—I usually just use the Notes app on my iPhone.
 
