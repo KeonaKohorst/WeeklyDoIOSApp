@@ -75,9 +75,12 @@ class TaskViewController: UIViewController {
         button.showsMenuAsPrimaryAction = true
         button.changesSelectionAsPrimaryAction = true
         
+        print("Received weekday is \(weekday)")
         if(weekday != "All" && weekday != "General"){
             //set the button title to the weekday
             button.setTitle(weekday, for: .normal)
+        }else{
+            print("THIS IS HAPPENING")
         }
         
         //configure tags button
@@ -117,10 +120,11 @@ class TaskViewController: UIViewController {
     func getIdForWeekday(name: String) -> Int {
         // Get weekday from the ID
         //print("Get weekday by id: \(id)")
+        print("name is \(name)")
         let dailyDoDB = FMDatabase(path: databasePath as String)
         
         if (dailyDoDB.open()) {
-            let getSQL = "SELECT id FROM Weekdays WHERE name = '\(name)' AND date IS NULL"
+            let getSQL = "SELECT id FROM Weekdays WHERE name = '\(name)'"
             if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
                 if result.next() { // move to the first row with .next()
                     let weekdayID = Int(result.int(forColumn: "id"))
@@ -257,7 +261,7 @@ class TaskViewController: UIViewController {
         guard let text = titleField.text, !text.isEmpty else {
             return
         }
-        //print("UPDATING TASK ", text)
+        print("UPDATING TASK ", text)
         //save task cuz not empty
         if let task = titleField.text, !task.isEmpty {
             
@@ -270,6 +274,7 @@ class TaskViewController: UIViewController {
             let dailyDoDB = FMDatabase(path: databasePath as String)
             if (dailyDoDB.open()){
                 
+                print("Weekday is \(weekday)")
                 weekdayID = getIdForWeekday(name: weekday)
                 var updateSQL = ""
 

@@ -213,7 +213,10 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
             //count = getCountByTag(tagID: tagID!)
             //print("count for \(text) is \(count)")
             count = tagCounts[text]!
+            //tagCounts[text] = count
         }
+        
+        
         
     
   
@@ -392,7 +395,7 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
 
         if (dailyDoDB.open()) {
             //print("OPENED DB")
-            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE weekday = '\(tagID)' AND finished = false AND date IS NULL"
+            let getSQL = "SELECT COUNT(*) AS count FROM tasks WHERE tag = '\(tagID)' AND finished = false AND date IS NULL"
             if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
                 if result.next() { // move to the first row with .next()
                     let count = Int(result.int(forColumn: "count"))
@@ -444,6 +447,8 @@ class FilterViewController: UIViewController, UITableViewDataSource, UITableView
                 tagCounts[tag] = getCountByTag(tagID: tagID)
             }
         }
+        
+        print("tag counts is \(tagCounts)")
         
         tableView.reloadData()
     }

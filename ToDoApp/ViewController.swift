@@ -149,6 +149,7 @@ class ViewController: UIViewController {
         let dailyDoDB = FMDatabase(path: databasePath as String)
         
         if (dailyDoDB.open()) {
+            print("View controller get id for weekday has name \(name)")
             let getSQL = "SELECT id FROM Weekdays WHERE name = '\(name)'"
             if let result = dailyDoDB.executeQuery(getSQL, withArgumentsIn: []) {
                 if result.next() { // move to the first row with .next()
@@ -622,6 +623,7 @@ extension ViewController: UITableViewDelegate{
         vc.taskDescription = task.description
         vc.taskIndex = indexPath.row
         vc.weekday = task.weekday
+        print("Passing weekday to ask controller \(task.weekday)")
         vc.tagID = task.tag
         vc.taskFinished = finishedTask
         vc.weekdayID = getIdForWeekday(name: category)
